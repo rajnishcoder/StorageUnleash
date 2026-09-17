@@ -1,8 +1,12 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
-import { IPC_CHANNELS, StorageAPI } from '@shared/types/ipc';
+import { IPC_CHANNELS, StorageAPI, QuickTarget } from '@shared/types/ipc';
 import type { ScanProgress, ScanResult, ScanError, TrashResult } from '@shared/models/fileNode';
 
 const storageAPI: StorageAPI = {
+  getQuickTargets: (): Promise<QuickTarget[]> => {
+    return ipcRenderer.invoke(IPC_CHANNELS.GET_QUICK_TARGETS);
+  },
+
   selectFolder: (): Promise<string | null> => {
     return ipcRenderer.invoke(IPC_CHANNELS.SELECT_FOLDER);
   },

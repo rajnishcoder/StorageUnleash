@@ -1,10 +1,19 @@
 import type { ScanProgress, ScanResult, ScanError, TrashResult } from '../models/fileNode';
 
+export interface QuickTarget {
+  id: string;
+  name: string;
+  path: string;
+  iconType: 'home' | 'users' | 'applications' | 'downloads' | 'documents' | 'desktop' | 'disk';
+  description?: string;
+}
+
 /**
  * IPC channel names constants.
  */
 export const IPC_CHANNELS = {
-  // Folder & Disk selection
+  // Quick targets & Folder selection
+  GET_QUICK_TARGETS: 'storage:get-quick-targets',
   SELECT_FOLDER: 'storage:select-folder',
   
   // Scanning operations
@@ -30,6 +39,11 @@ export type IPCChannelName = typeof IPC_CHANNELS[keyof typeof IPC_CHANNELS];
  * Typed storage API exposed to renderer window.storageAPI.
  */
 export interface StorageAPI {
+  /**
+   * Retrieves default quick access targets for the current operating system.
+   */
+  getQuickTargets(): Promise<QuickTarget[]>;
+
   /**
    * Opens native directory selection dialog.
    * Returns the selected folder path or null if cancelled.

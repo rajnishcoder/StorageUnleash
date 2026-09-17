@@ -1,22 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { FolderOpen, HardDrive, ExternalLink, ShieldCheck, Sparkles } from 'lucide-react';
-import { truncatePath } from '@shared/utils/formatters';
+import React from 'react';
+import { FolderOpen, HardDrive, ShieldCheck, Sparkles, Home, Users, AppWindow, Download } from 'lucide-react';
+import { useStorageStore } from '../../stores/storageStore';
 import './HomePage.css';
 
 export const HomePage: React.FC = () => {
-  const [selectedPath, setSelectedPath] = useState<string | null>(null);
-  const [platform, setPlatform] = useState<string>('desktop');
-  const [isElectron, setIsElectron] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(false);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.storageAPI) {
-      setIsElectron(true);
-      window.storageAPI.getPlatform()
-        .then((p) => setPlatform(p))
-        .catch((err) => console.error('Failed to get platform:', err));
-    }
-  }, []);
+  const { startScan, quickTargets, platform } = useStorageStore();
 
   const handleSelectFolder = async () => {
     if (!window.storageAPI) {
@@ -25,30 +13,27 @@ export const HomePage: React.FC = () => {
     }
 
     try {
-      setLoading(true);
       const path = await window.storageAPI.selectFolder();
       if (path) {
-        setSelectedPath(path);
+        startScan(path);
       }
     } catch (error) {
       console.error('Failed to select folder:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
-  const handleSelectDisk = async () => {
-    // In V1 initial milestone, select disk opens native picker at root or volumes
-    await handleSelectFolder();
-  };
-
-  const handleReveal = async () => {
-    if (selectedPath && window.storageAPI) {
-      try {
-        await window.storageAPI.revealInFileManager(selectedPath);
-      } catch (error) {
-        console.error('Failed to reveal path:', error);
-      }
+  const getTargetIcon = (iconType: string) => {
+    switch (iconType) {
+      case 'home':
+        return <Home size={18} />;
+      case 'users':
+        return <Users size={18} />;
+      case 'applications':
+        return <AppWindow size={18} />;
+      case 'downloads':
+        return <Download size={18} />;
+      default:
+        return <HardDrive size={18} />;
     }
   };
 
@@ -69,7 +54,6 @@ export const HomePage: React.FC = () => {
         <button
           className="action-card"
           onClick={handleSelectFolder}
-          disabled={loading}
           type="button"
         >
           <div className="action-icon-wrapper">
@@ -81,34 +65,42 @@ export const HomePage: React.FC = () => {
 
         <button
           className="action-card"
-          onClick={handleSelectDisk}
-          disabled={loading}
+          onClick={handleSelectFolder}
           type="button"
         >
           <div className="action-icon-wrapper">
             <HardDrive size={28} />
           </div>
           <span className="action-label">Analyze a Disk</span>
-          <span className="action-description">Scan entire drive or mount</span>
+          <span className="action-description">Scan entire drive or mount point</span>
         </button>
       </div>
 
-      {selectedPath && (
-        <div className="selection-info">
-          <div className="selection-details">
-            <div className="selection-label">Selected Directory</div>
-            <div className="selection-path" title={selectedPath}>
-              {truncatePath(selectedPath, 60)}
-            </div>
+      {quickTargets.length > 0 && (
+        <div style={{ width: '100%', maxWidth: '580px', marginTop: '12px' }}>
+          <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            Quick Locations
           </div>
-          <button className="reveal-btn" onClick={handleReveal} type="button">
-            <ExternalLink size={13} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
-            {platform === 'darwin' ? 'Reveal in Finder' : 'Show in Explorer'}
-          </button>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '10px' }}>
+            {quickTargets.map((target) => (
+              <button
+                key={target.id}
+                type="button"
+                className="action-card"
+                style={{ padding: '14px 10px' }}
+                onClick={() => startScan(target.path)}
+              >
+                <div style={{ color: 'var(--accent-primary)', marginBottom: '6px' }}>
+                  {getTargetIcon(target.iconType)}
+                </div>
+                <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>{target.name}</span>
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
-      <div className="home-footer">
+      <div className="home-footer" style={{ marginTop: '32px' }}>
         <div className="footer-item">
           <ShieldCheck size={14} color="#38bdf8" />
           <span>Local & Private (No cloud upload)</span>
@@ -116,7 +108,7 @@ export const HomePage: React.FC = () => {
         <span>•</span>
         <div className="footer-item">
           <Sparkles size={14} color="#818cf8" />
-          <span>{isElectron ? `Secure Preload IPC (${platform})` : 'Web Browser Mode'}</span>
+          <span style={{ textTransform: 'capitalize' }}>Platform: {platform}</span>
         </div>
       </div>
     </div>

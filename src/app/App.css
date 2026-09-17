@@ -50,7 +50,6 @@ html, body, #root {
   background: radial-gradient(circle at 50% 0%, #1e1b4b 0%, #0b0f19 75%);
 }
 
-/* macOS draggable titlebar area */
 .app-titlebar {
   height: 38px;
   width: 100%;
@@ -69,9 +68,15 @@ html, body, #root {
   z-index: 100;
 }
 
+.app-body {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
 .app-main {
   flex: 1;
-  overflow: auto;
+  overflow: hidden;
   position: relative;
   display: flex;
   flex-direction: column;

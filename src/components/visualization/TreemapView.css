@@ -1,0 +1,79 @@
+.treemap-container {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.treemap-canvas-wrapper {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background: rgba(11, 15, 25, 0.4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  overflow: hidden;
+}
+
+.treemap-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.treemap-node {
+  cursor: pointer;
+  transition: opacity var(--transition-fast), filter var(--transition-fast);
+}
+
+.treemap-node:hover {
+  filter: brightness(1.2);
+  opacity: 0.95;
+}
+
+.treemap-rect {
+  stroke: rgba(11, 15, 25, 0.8);
+  stroke-width: 1.5px;
+  rx: 6px;
+  ry: 6px;
+  transition: stroke var(--transition-fast);
+}
+
+.treemap-node.selected .treemap-rect {
+  stroke: #38bdf8;
+  stroke-width: 2.5px;
+}
+
+.treemap-node-text {
+  font-family: var(--font-family);
+  user-select: none;
+  pointer-events: none;
+}
+
+.treemap-node-title {
+  font-size: 12px;
+  font-weight: 600;
+  fill: #ffffff;
+}
+
+.treemap-node-size {
+  font-size: 11px;
+  font-weight: 400;
+  fill: rgba(255, 255, 255, 0.7);
+}
+
+.treemap-empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
