@@ -3,17 +3,15 @@ import { useStorageStore } from '../../stores/storageStore';
 import { Breadcrumbs } from '../../components/storage/Breadcrumbs';
 import { TreemapView } from '../../components/visualization/TreemapView';
 import { LargestFilesView } from '../../components/storage/LargestFilesView';
-import { FileTypesView } from '../../components/storage/FileTypesView';
 import { ConfirmModal } from '../../components/common/ConfirmModal';
 import { formatBytes, formatNumber } from '@shared/utils/formatters';
-import { LayoutGrid, ListOrdered, PieChart, ExternalLink, Trash2, X, Folder, File } from 'lucide-react';
+import { ExternalLink, Trash2, X, Folder, File } from 'lucide-react';
 import type { FileNode } from '@shared/models/fileNode';
 import './StoragePage.css';
 
 export const StoragePage: React.FC = () => {
   const {
-    activeTab,
-    setActiveTab,
+    viewMode,
     selectedNode,
     selectNode,
     removePathFromTree,
@@ -54,46 +52,17 @@ export const StoragePage: React.FC = () => {
     <div className="storage-page-container">
       <Breadcrumbs />
 
-      <div className="storage-page-toolbar">
-        <div className="view-tabs">
-          <button
-            type="button"
-            className={`view-tab-btn ${activeTab === 'treemap' ? 'active' : ''}`}
-            onClick={() => setActiveTab('treemap')}
-          >
-            <LayoutGrid size={14} />
-            <span>Treemap</span>
-          </button>
-          <button
-            type="button"
-            className={`view-tab-btn ${activeTab === 'largest-files' ? 'active' : ''}`}
-            onClick={() => setActiveTab('largest-files')}
-          >
-            <ListOrdered size={14} />
-            <span>Largest Files</span>
-          </button>
-          <button
-            type="button"
-            className={`view-tab-btn ${activeTab === 'file-types' ? 'active' : ''}`}
-            onClick={() => setActiveTab('file-types')}
-          >
-            <PieChart size={14} />
-            <span>File Categories</span>
-          </button>
-        </div>
-      </div>
-
       <div className="storage-content-layout">
         <div className="storage-main-view">
-          {activeTab === 'treemap' && <TreemapView />}
-          {activeTab === 'largest-files' && (
+          {viewMode === 'treemap' ? (
+            <TreemapView />
+          ) : (
             <LargestFilesView onTrashRequest={(node) => setTrashCandidate(node)} />
           )}
-          {activeTab === 'file-types' && <FileTypesView />}
         </div>
 
-        {/* Selected Node Details Pane (Treemap tab) */}
-        {activeTab === 'treemap' && selectedNode && (
+        {/* Selected Node Details Pane */}
+        {selectedNode && (
           <aside className="node-details-pane">
             <div className="details-header">
               <span className="details-title">Selected Item</span>
@@ -107,7 +76,11 @@ export const StoragePage: React.FC = () => {
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              {selectedNode.type === 'directory' ? <Folder size={20} color="#38bdf8" /> : <File size={20} color="#a855f7" />}
+              {selectedNode.type === 'directory' ? (
+                <Folder size={20} color="#38bdf8" />
+              ) : (
+                <File size={20} color="#a855f7" />
+              )}
               <div className="details-name">{selectedNode.name}</div>
             </div>
 
@@ -120,7 +93,9 @@ export const StoragePage: React.FC = () => {
               </div>
               <div className="details-meta-row">
                 <span className="details-meta-lbl">Type</span>
-                <span className="details-meta-val" style={{ textTransform: 'capitalize' }}>{selectedNode.type}</span>
+                <span className="details-meta-val" style={{ textTransform: 'capitalize' }}>
+                  {selectedNode.type}
+                </span>
               </div>
               {selectedNode.type === 'directory' && (
                 <>

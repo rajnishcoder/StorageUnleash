@@ -1,11 +1,11 @@
 import { create } from 'zustand';
 import type { FileNode, ScanProgress, ScanResult, ScanError } from '@shared/models/fileNode';
-import type { QuickTarget } from '@shared/types/ipc';
+import type { QuickTarget, DiskSpaceInfo, TrashInfo } from '@shared/types/ipc';
 
 export type ScanStatus = 'idle' | 'scanning' | 'completed' | 'cancelled' | 'error';
-export type ViewTab = 'treemap' | 'largest-files' | 'file-types';
+export type ViewMode = 'treemap' | 'list';
 
-interface StorageState {
+export interface StorageState {
   // Navigation & Scan State
   scanStatus: ScanStatus;
   currentScanPath: string | null;
@@ -17,11 +17,17 @@ interface StorageState {
   currentDirectory: FileNode | null;
   breadcrumbs: FileNode[];
   selectedNode: FileNode | null;
-  activeTab: ViewTab;
+  viewMode: ViewMode;
 
-  // Quick Targets & OS
+  // System & Disk Information
   quickTargets: QuickTarget[];
+  diskSpace: DiskSpaceInfo | null;
+  trashInfo: TrashInfo | null;
   platform: string;
+
+  // Search & Dev Bloat Filters
+  searchQuery: string;
+  devFilters: Record<string, boolean>;
 
   // Actions
   init: () => Promise<void>;
@@ -30,14 +36,16 @@ interface StorageState {
   drillDown: (node: FileNode) => void;
   drillUp: (targetIndex: number) => void;
   selectNode: (node: FileNode | null) => void;
-  setActiveTab: (tab: ViewTab) => void;
+  setViewMode: (mode: ViewMode) => void;
+  setSearchQuery: (query: string) => void;
+  toggleDevFilter: (filterKey: string) => void;
   resetToHome: () => void;
   rescan: () => Promise<void>;
   removePathFromTree: (deletedPath: string) => void;
 }
 
 export const useStorageStore = create<StorageState>((set, get) => {
-  // Register IPC listeners if window.storageAPI is present
+  // Register IPC listeners
   if (typeof window !== 'undefined' && window.storageAPI) {
     window.storageAPI.onScanProgress((progress) => {
       set({ progress });
@@ -71,19 +79,31 @@ export const useStorageStore = create<StorageState>((set, get) => {
     currentDirectory: null,
     breadcrumbs: [],
     selectedNode: null,
-    activeTab: 'treemap',
+    viewMode: 'treemap',
 
     quickTargets: [],
+    diskSpace: null,
+    trashInfo: null,
     platform: 'desktop',
+
+    searchQuery: '',
+    devFilters: {},
 
     init: async () => {
       if (typeof window !== 'undefined' && window.storageAPI) {
         try {
-          const [targets, plat] = await Promise.all([
+          const [targets, plat, disk, trash] = await Promise.all([
             window.storageAPI.getQuickTargets(),
-            window.storageAPI.getPlatform()
+            window.storageAPI.getPlatform(),
+            window.storageAPI.getDiskSpace(),
+            window.storageAPI.getTrashInfo()
           ]);
-          set({ quickTargets: targets, platform: plat });
+          set({
+            quickTargets: targets,
+            platform: plat,
+            diskSpace: disk,
+            trashInfo: trash
+          });
         } catch (error) {
           console.error('Failed to init storage store:', error);
         }
@@ -103,7 +123,8 @@ export const useStorageStore = create<StorageState>((set, get) => {
           currentPath: targetPath
         },
         errorMessage: null,
-        selectedNode: null
+        selectedNode: null,
+        searchQuery: ''
       });
 
       if (typeof window !== 'undefined' && window.storageAPI) {
@@ -155,8 +176,22 @@ export const useStorageStore = create<StorageState>((set, get) => {
       set({ selectedNode: node });
     },
 
-    setActiveTab: (tab: ViewTab) => {
-      set({ activeTab: tab });
+    setViewMode: (mode: ViewMode) => {
+      set({ viewMode: mode });
+    },
+
+    setSearchQuery: (query: string) => {
+      set({ searchQuery: query });
+    },
+
+    toggleDevFilter: (filterKey: string) => {
+      const { devFilters } = get();
+      set({
+        devFilters: {
+          ...devFilters,
+          [filterKey]: !devFilters[filterKey]
+        }
+      });
     },
 
     resetToHome: () => {
@@ -167,7 +202,8 @@ export const useStorageStore = create<StorageState>((set, get) => {
         currentDirectory: null,
         breadcrumbs: [],
         selectedNode: null,
-        progress: null
+        progress: null,
+        searchQuery: ''
       });
     },
 

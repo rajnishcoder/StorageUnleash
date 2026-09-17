@@ -3,6 +3,7 @@ import { IPC_CHANNELS } from '@shared/types/ipc';
 import { FilesystemScanner } from '../filesystem/scanner';
 import { getSystemQuickTargets } from '../filesystem/quickTargets';
 import { moveToTrash } from '../filesystem/trash';
+import { getDiskSpace, getTrashInfo } from '../filesystem/diskSpace';
 import type { ScanProgress } from '@shared/models/fileNode';
 
 let activeScanner: FilesystemScanner | null = null;
@@ -11,6 +12,16 @@ let activeScanner: FilesystemScanner | null = null;
  * Registers all filesystem and storage-related IPC handlers in the Electron main process.
  */
 export function registerFilesystemHandlers(mainWindow: BrowserWindow): void {
+  // Get Disk Space Information
+  ipcMain.handle(IPC_CHANNELS.GET_DISK_SPACE, async () => {
+    return await getDiskSpace();
+  });
+
+  // Get Trash info
+  ipcMain.handle(IPC_CHANNELS.GET_TRASH_INFO, async () => {
+    return await getTrashInfo();
+  });
+
   // Get Quick Targets (Home, Users, Applications, Downloads, etc.)
   ipcMain.handle(IPC_CHANNELS.GET_QUICK_TARGETS, async () => {
     try {
@@ -46,7 +57,6 @@ export function registerFilesystemHandlers(mainWindow: BrowserWindow): void {
       throw new Error('Invalid scan path provided');
     }
 
-    // Cancel any previous active scan
     if (activeScanner) {
       activeScanner.cancel();
       activeScanner = null;

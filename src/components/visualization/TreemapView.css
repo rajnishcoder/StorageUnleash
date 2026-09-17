@@ -4,7 +4,8 @@
   height: 100%;
   position: relative;
   overflow: hidden;
-  padding: 12px;
+  background: #0b0f19;
+  user-select: none;
   display: flex;
   flex-direction: column;
 }
@@ -14,9 +15,6 @@
   width: 100%;
   height: 100%;
   position: relative;
-  background: rgba(11, 15, 25, 0.4);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-subtle);
   overflow: hidden;
 }
 
@@ -26,45 +24,118 @@
   display: block;
 }
 
-.treemap-node {
+/* Directory container box */
+.tree-dir-box {
+  transition: opacity 0.15s ease, filter 0.15s ease;
   cursor: pointer;
-  transition: opacity var(--transition-fast), filter var(--transition-fast);
 }
 
-.treemap-node:hover {
-  filter: brightness(1.2);
-  opacity: 0.95;
+.tree-dir-box:hover > rect.dir-bg {
+  filter: brightness(1.15);
 }
 
-.treemap-rect {
-  stroke: rgba(11, 15, 25, 0.8);
-  stroke-width: 1.5px;
-  rx: 6px;
-  ry: 6px;
-  transition: stroke var(--transition-fast);
+.dir-bg {
+  rx: 3px;
+  ry: 3px;
+  stroke: rgba(0, 0, 0, 0.6);
+  stroke-width: 1px;
 }
 
-.treemap-node.selected .treemap-rect {
-  stroke: #38bdf8;
-  stroke-width: 2.5px;
+.dir-header-bar {
+  rx: 3px;
+  ry: 3px;
+  fill: rgba(0, 0, 0, 0.25);
 }
 
-.treemap-node-text {
-  font-family: var(--font-family);
-  user-select: none;
+.dir-header-text {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  fill: #cbd5e1;
   pointer-events: none;
 }
 
-.treemap-node-title {
-  font-size: 12px;
-  font-weight: 600;
-  fill: #ffffff;
+.dir-header-size {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  fill: #94a3b8;
+  text-anchor: end;
+  pointer-events: none;
 }
 
-.treemap-node-size {
+/* Leaf File box */
+.tree-leaf-box {
+  cursor: pointer;
+  transition: filter 0.15s ease, opacity 0.15s ease;
+}
+
+.tree-leaf-box:hover rect.leaf-rect {
+  filter: brightness(1.25);
+  stroke: rgba(255, 255, 255, 0.6);
+}
+
+.leaf-rect {
+  rx: 3px;
+  ry: 3px;
+  stroke: rgba(0, 0, 0, 0.7);
+  stroke-width: 1px;
+}
+
+.leaf-text {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-size: 11px;
+  font-weight: 600;
+  fill: #f8fafc;
+  pointer-events: none;
+}
+
+.leaf-size {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 10px;
   font-weight: 400;
-  fill: rgba(255, 255, 255, 0.7);
+  fill: rgba(255, 255, 255, 0.75);
+  pointer-events: none;
+}
+
+/* Floating Sleek Tooltip matching screenshot */
+.treemap-floating-tooltip {
+  position: absolute;
+  z-index: 100;
+  pointer-events: none;
+  background: rgba(15, 20, 30, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 10px 14px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(12px);
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transform: translate(-50%, -120%);
+  transition: transform 0.05s linear;
+}
+
+.tooltip-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  word-break: break-all;
+}
+
+.tooltip-size {
+  font-size: 18px;
+  font-weight: 800;
+  color: #a855f7;
+  letter-spacing: -0.3px;
+}
+
+.tooltip-path {
+  font-size: 10px;
+  font-family: monospace;
+  color: #64748b;
+  word-break: break-all;
 }
 
 .treemap-empty-state {

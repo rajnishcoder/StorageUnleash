@@ -1,10 +1,22 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
-import { IPC_CHANNELS, StorageAPI, QuickTarget } from '@shared/types/ipc';
+import { IPC_CHANNELS, StorageAPI, QuickTarget, DiskSpaceInfo, TrashInfo } from '@shared/types/ipc';
 import type { ScanProgress, ScanResult, ScanError, TrashResult } from '@shared/models/fileNode';
 
 const storageAPI: StorageAPI = {
+  getDiskSpace: (): Promise<DiskSpaceInfo> => {
+    return ipcRenderer.invoke(IPC_CHANNELS.GET_DISK_SPACE);
+  },
+
   getQuickTargets: (): Promise<QuickTarget[]> => {
     return ipcRenderer.invoke(IPC_CHANNELS.GET_QUICK_TARGETS);
+  },
+
+  getTrashInfo: (): Promise<TrashInfo> => {
+    return ipcRenderer.invoke(IPC_CHANNELS.GET_TRASH_INFO);
+  },
+
+  emptyTrash: async (): Promise<boolean> => {
+    return true;
   },
 
   selectFolder: (): Promise<string | null> => {

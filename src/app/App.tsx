@@ -1,5 +1,6 @@
 import React from 'react';
 import { useStorageStore } from '../stores/storageStore';
+import { TopNav } from '../components/layout/TopNav';
 import { Sidebar } from '../components/layout/Sidebar';
 import { HomePage } from '../pages/Home/HomePage';
 import { ScanningView } from '../components/scanner/ScanningView';
@@ -11,9 +12,7 @@ export const App: React.FC = () => {
 
   return (
     <div className="app-container">
-      <header className="app-titlebar">
-        <span>StorageUnleash</span>
-      </header>
+      <TopNav />
       <div className="app-body">
         <Sidebar />
         <main className="app-main">

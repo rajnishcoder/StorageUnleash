@@ -1,0 +1,126 @@
+.top-nav {
+  height: 44px;
+  width: 100%;
+  background-color: #0b0f19;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  -webkit-app-region: drag;
+  z-index: 50;
+  gap: 16px;
+}
+
+.top-nav-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  -webkit-app-region: no-drag;
+}
+
+.mac-traffic-lights-spacer {
+  width: 70px;
+  height: 100%;
+}
+
+.top-nav-brand {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: #f8fafc;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.top-nav-center {
+  flex: 1;
+  max-width: 520px;
+  -webkit-app-region: no-drag;
+}
+
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  color: #64748b;
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 6px 12px 6px 36px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  font-size: 13px;
+  color: #f8fafc;
+  outline: none;
+  transition: all var(--transition-fast);
+}
+
+.search-input:focus {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.15);
+}
+
+.search-input::placeholder {
+  color: #64748b;
+}
+
+.search-shortcut {
+  position: absolute;
+  right: 10px;
+  font-size: 10px;
+  color: #475569;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 2px 5px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.top-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  -webkit-app-region: no-drag;
+}
+
+.nav-view-pills {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 2px;
+}
+
+.nav-view-btn {
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #94a3b8;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.nav-view-btn:hover {
+  color: #f8fafc;
+}
+
+.nav-view-btn.active {
+  background: rgba(255, 255, 255, 0.12);
+  color: #f8fafc;
+  font-weight: 600;
+}
