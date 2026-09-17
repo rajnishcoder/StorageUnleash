@@ -26,7 +26,7 @@
 
 /* Directory container box */
 .tree-dir-box {
-  transition: opacity 0.15s ease, filter 0.15s ease;
+  transition: opacity 0.2s ease, filter 0.2s ease;
   cursor: pointer;
 }
 
@@ -39,6 +39,7 @@
   ry: 3px;
   stroke: rgba(0, 0, 0, 0.6);
   stroke-width: 1px;
+  transition: fill 0.2s ease, stroke 0.2s ease;
 }
 
 .dir-header-bar {
@@ -67,7 +68,7 @@
 /* Leaf File box */
 .tree-leaf-box {
   cursor: pointer;
-  transition: filter 0.15s ease, opacity 0.15s ease;
+  transition: filter 0.2s ease, opacity 0.2s ease;
 }
 
 .tree-leaf-box:hover rect.leaf-rect {
@@ -80,6 +81,7 @@
   ry: 3px;
   stroke: rgba(0, 0, 0, 0.7);
   stroke-width: 1px;
+  transition: fill 0.2s ease, stroke 0.2s ease;
 }
 
 .leaf-text {
@@ -96,6 +98,34 @@
   font-weight: 400;
   fill: rgba(255, 255, 255, 0.75);
   pointer-events: none;
+}
+
+/* Dev Bloat & Search Filter Spotlight Effect matching screenshots */
+.tree-dir-box.dimmed,
+.tree-leaf-box.dimmed {
+  opacity: 0.22;
+  filter: brightness(0.6) grayscale(40%);
+}
+
+.tree-dir-box.highlighted > rect.dir-bg,
+.tree-leaf-box.highlighted > rect.leaf-rect {
+  fill: #ff9800 !important;
+  stroke: #ffffff !important;
+  stroke-width: 1.5px !important;
+  filter: drop-shadow(0 0 10px rgba(255, 152, 0, 0.7));
+  opacity: 1 !important;
+}
+
+.tree-dir-box.highlighted .dir-header-bar {
+  fill: rgba(0, 0, 0, 0.45) !important;
+}
+
+.tree-dir-box.highlighted .dir-header-text,
+.tree-dir-box.highlighted .dir-header-size,
+.tree-leaf-box.highlighted .leaf-text,
+.tree-leaf-box.highlighted .leaf-size {
+  fill: #ffffff !important;
+  font-weight: 700;
 }
 
 /* Crystal-clear, ultra-sharp floating tooltip */

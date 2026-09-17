@@ -36,7 +36,9 @@ const DEV_BLOAT_ITEMS = [
   { id: 'disk_images', label: 'Disk Images', icon: HardDrive },
   { id: 'archives', label: 'Archives', icon: Archive },
   { id: 'ios_backups', label: 'iOS Backups', icon: Cloud },
-  { id: 'virtual_machines', label: 'Virtual Machines', icon: Server }
+  { id: 'virtual_machines', label: 'Virtual Machines', icon: Server },
+  { id: 'large_media', label: 'Large Media', icon: Film },
+  { id: 'logs_caches', label: 'Logs & Caches', icon: Folder }
 ];
 
 const FILE_TYPE_LEGEND = [

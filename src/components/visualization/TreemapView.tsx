@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { useStorageStore } from '../../stores/storageStore';
 import { computeHierarchicalTreemap, TreemapRect } from '@shared/analyzer/treemap';
 import { categorizeFile, CATEGORY_COLORS } from '@shared/analyzer/categorizer';
+import { isNodeHighlighted } from '@shared/analyzer/filterMatcher';
 import { formatBytes } from '@shared/utils/formatters';
 import { Layers } from 'lucide-react';
 import type { FileNode } from '@shared/models/fileNode';
@@ -19,7 +20,7 @@ const CONTAINER_PALETTE = [
   '#282c37'  // Deep Graphite
 ];
 
-// Balanced, pleasing leaf palette (balanced distribution, no dominating red)
+// Balanced, pleasing leaf palette
 const LEAF_PALETTE = [
   '#3b82f6', // Vibrant Blue
   '#0d9488', // Emerald Teal
@@ -42,7 +43,9 @@ export const TreemapView: React.FC = () => {
     currentDirectory,
     selectedNode,
     drillDown,
-    selectNode
+    selectNode,
+    devFilters,
+    searchQuery
   } = useStorageStore();
 
   useEffect(() => {
@@ -60,6 +63,10 @@ export const TreemapView: React.FC = () => {
     observer.observe(containerRef.current);
     return () => observer.disconnect();
   }, []);
+
+  const hasActiveFilter = useMemo(() => {
+    return Object.values(devFilters).some(Boolean) || searchQuery.trim().length > 0;
+  }, [devFilters, searchQuery]);
 
   // Compute hierarchical treemap
   const hierarchicalRects = useMemo(() => {
@@ -175,8 +182,14 @@ export const TreemapView: React.FC = () => {
   const renderRect = (rect: TreemapRect, index: number): React.ReactNode => {
     const isSelected = selectedNode?.id === rect.id;
     const hasChildren = rect.children && rect.children.length > 0;
+    const isMatched = isNodeHighlighted(rect.node, devFilters, searchQuery);
 
-    // Any directory node is rendered with container styling and header banner
+    let filterClass = '';
+    if (hasActiveFilter) {
+      filterClass = isMatched ? 'highlighted' : 'dimmed';
+    }
+
+    // Directory node with container styling and header banner
     if (rect.type === 'directory') {
       const bg = getContainerBg(rect);
       const showHeader = rect.width >= 45 && rect.height >= 25;
@@ -184,7 +197,7 @@ export const TreemapView: React.FC = () => {
       return (
         <g
           key={rect.id || index}
-          className={`tree-dir-box ${isSelected ? 'selected' : ''}`}
+          className={`tree-dir-box ${filterClass} ${isSelected ? 'selected' : ''}`}
           onClick={(e) => handleNodeClick(e, rect.node)}
           onMouseMove={(e) => handleMouseMove(e, rect)}
         >
@@ -213,7 +226,7 @@ export const TreemapView: React.FC = () => {
     return (
       <g
         key={rect.id || index}
-        className={`tree-leaf-box ${isSelected ? 'selected' : ''}`}
+        className={`tree-leaf-box ${filterClass} ${isSelected ? 'selected' : ''}`}
         onClick={(e) => handleNodeClick(e, rect.node)}
         onMouseMove={(e) => handleMouseMove(e, rect)}
       >
