@@ -6,22 +6,22 @@ describe('formatBytes', () => {
     expect(formatBytes(0)).toBe('0 B');
   });
 
-  it('formats bytes, KB, MB, GB, TB correctly', () => {
-    expect(formatBytes(500)).toBe('500 B');
-    expect(formatBytes(1024)).toBe('1 KB');
-    expect(formatBytes(1024 * 1024)).toBe('1 MB');
-    expect(formatBytes(1024 * 1024 * 1024)).toBe('1 GB');
-    expect(formatBytes(1.5 * 1024 * 1024 * 1024)).toBe('1.5 GB');
-    expect(formatBytes(1024 * 1024 * 1024 * 1024)).toBe('1 TB');
+  it('formats bytes, KB, MB, GB, TB correctly using decimal base 1000', () => {
+    expect(formatBytes(500)).toBe('500.00 B');
+    expect(formatBytes(1000)).toBe('1.00 KB');
+    expect(formatBytes(1000 * 1000)).toBe('1.00 MB');
+    expect(formatBytes(1000 * 1000 * 1000)).toBe('1.00 GB');
+    expect(formatBytes(245.11 * 1000 * 1000 * 1000, 2)).toBe('245.11 GB');
+    expect(formatBytes(1000 * 1000 * 1000 * 1000)).toBe('1.00 TB');
   });
 
   it('handles negative bytes safely', () => {
-    expect(formatBytes(-1024)).toBe('-1 KB');
+    expect(formatBytes(-1000)).toBe('-1.00 KB');
   });
 
   it('handles custom decimal precision', () => {
-    expect(formatBytes(1536, 1)).toBe('1.5 KB');
-    expect(formatBytes(1536, 0)).toBe('2 KB');
+    expect(formatBytes(1500, 1)).toBe('1.5 KB');
+    expect(formatBytes(1500, 0)).toBe('2 KB');
   });
 });
 

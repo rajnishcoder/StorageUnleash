@@ -6,23 +6,28 @@
 const BYTE_UNITS = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'] as const;
 
 /**
- * Formats a byte size number into human-readable string (e.g. 18.42 GB).
- * Uses base 1024 binary units.
+ * Formats disk storage capacity using macOS decimal standard (base 1000, 1 GB = 10^9 B).
+ * Matches macOS Finder, Disk Utility, and DissectMac.
  */
-export function formatBytes(bytes: number, decimals: number = 2): string {
+export function formatDiskBytes(bytes: number, decimals: number = 2): string {
   if (bytes === 0 || !Number.isFinite(bytes)) return '0 B';
-  if (bytes < 0) return '-' + formatBytes(-bytes, decimals);
+  if (bytes < 0) return '-' + formatDiskBytes(-bytes, decimals);
 
-  const k = 1024;
+  const k = 1000;
   const dm = decimals < 0 ? 0 : decimals;
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   const unitIndex = Math.min(i, BYTE_UNITS.length - 1);
 
   const value = bytes / Math.pow(k, unitIndex);
-  
-  // Clean decimal representation (omit trailing zeroes if not needed)
-  const formattedValue = parseFloat(value.toFixed(dm));
-  return `${formattedValue} ${BYTE_UNITS[unitIndex]}`;
+  return `${value.toFixed(dm)} ${BYTE_UNITS[unitIndex]}`;
+}
+
+/**
+ * Formats a byte size number into human-readable string.
+ * Uses decimal base 1000 for macOS consistency (e.g. 18.42 GB).
+ */
+export function formatBytes(bytes: number, decimals: number = 2): string {
+  return formatDiskBytes(bytes, decimals);
 }
 
 /**
