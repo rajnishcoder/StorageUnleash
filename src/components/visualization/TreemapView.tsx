@@ -8,30 +8,36 @@ import { Layers } from 'lucide-react';
 import type { FileNode } from '@shared/models/fileNode';
 import './TreemapView.css';
 
-// Rich container background tones matching DissectMac screenshot
-const CONTAINER_PALETTE = [
-  '#252e3e', // Deep Steel Blue
-  '#243527', // Dark Forest Olive
-  '#3d3023', // Warm Earth Amber
-  '#33233f', // Dark Plum / Violet
-  '#193238', // Dark Sea Teal
-  '#302b20', // Dark Bronze
-  '#21282e', // Charcoal Slate
-  '#282c37'  // Deep Graphite
+// 12 Rich distinct branch container themes matching DissectMac
+const BRANCH_CONTAINER_THEMES = [
+  '#2a3b50', // Steel Slate Blue
+  '#233f2e', // Forest Green
+  '#433421', // Warm Terracotta Amber
+  '#3a264e', // Plum Violet
+  '#1a3a42', // Ocean Teal
+  '#44262c', // Warm Coral / Wine
+  '#314023', // Olive Moss
+  '#282c52', // Deep Indigo
+  '#482d1c', // Warm Copper
+  '#442237', // Deep Rose
+  '#1c4037', // Mint Sage
+  '#263342'  // Graphite Blue
 ];
 
-// Balanced, pleasing leaf palette
-const LEAF_PALETTE = [
-  '#3b82f6', // Vibrant Blue
-  '#0d9488', // Emerald Teal
-  '#10b981', // Dev Green
-  '#8b5cf6', // Violet / Purple
-  '#0284c7', // Sky Blue
-  '#f59e0b', // Warm Amber
+// Rich leaf accents for diverse, colorful tile rendering
+const BRANCH_LEAF_COLORS = [
+  '#3b82f6', // Blue
+  '#10b981', // Emerald
+  '#f59e0b', // Amber
+  '#8b5cf6', // Violet
   '#06b6d4', // Cyan
-  '#64748b', // Cool Slate Gray
+  '#f43f5e', // Coral Rose
+  '#84cc16', // Lime Green
+  '#6366f1', // Indigo
+  '#f97316', // Orange
   '#ec4899', // Pink
-  '#e11d48'  // Rose
+  '#14b8a6', // Teal
+  '#0ea5e9'  // Sky
 ];
 
 export const TreemapView: React.FC = () => {
@@ -95,25 +101,23 @@ export const TreemapView: React.FC = () => {
   }, [currentDirectory, dimensions]);
 
   const getContainerBg = (rect: TreemapRect) => {
-    const idx = (rect.colorIndex || 0) % CONTAINER_PALETTE.length;
-    return CONTAINER_PALETTE[idx];
+    const idx = (rect.colorIndex || 0) % BRANCH_CONTAINER_THEMES.length;
+    return BRANCH_CONTAINER_THEMES[idx];
   };
 
   const getLeafColor = (rect: TreemapRect, index: number) => {
-    if (rect.type === 'other') return '#334155';
-    if (rect.type === 'directory') return getContainerBg(rect);
+    if (rect.type === 'other') return '#374151';
 
     if (rect.node?.extension) {
       const cat = categorizeFile(rect.node.extension);
-      return CATEGORY_COLORS[cat] || LEAF_PALETTE[index % LEAF_PALETTE.length];
+      if (cat !== 'other') {
+        return CATEGORY_COLORS[cat];
+      }
     }
 
-    // For raw data / blob files (like sha256-...)
-    if (rect.name.startsWith('sha256-') || rect.name.includes('blob') || !rect.name.includes('.')) {
-      return '#475569'; // Slate Charcoal
-    }
-
-    return LEAF_PALETTE[index % LEAF_PALETTE.length];
+    // Assign rich colorful tone based on branch and index
+    const colorIdx = (rect.colorIndex + index) % BRANCH_LEAF_COLORS.length;
+    return BRANCH_LEAF_COLORS[colorIdx];
   };
 
   const handleNodeClick = (e: React.MouseEvent, node?: FileNode) => {
@@ -189,7 +193,7 @@ export const TreemapView: React.FC = () => {
       filterClass = isMatched ? 'highlighted' : 'dimmed';
     }
 
-    // Directory node with container styling and header banner
+    // Directory container
     if (rect.type === 'directory') {
       const bg = getContainerBg(rect);
       const showHeader = rect.width >= 45 && rect.height >= 25;

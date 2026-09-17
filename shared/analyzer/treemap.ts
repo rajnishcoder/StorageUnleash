@@ -14,8 +14,8 @@ export interface TreemapRect {
   height: number;
   node?: FileNode;
   children?: TreemapRect[];
-  colorIndex?: number;
-  collapsedHeaders?: string[]; // If directory has single child chain (e.g. .ollama > models > blobs)
+  colorIndex: number;
+  collapsedHeaders?: string[];
 }
 
 export interface Bounds {
@@ -56,7 +56,6 @@ export function computeHierarchicalTreemap(
   const totalSum = validChildren.reduce((acc, c) => acc + c.size, 0);
   if (totalSum <= 0) return [];
 
-  // Minimum threshold to prevent micro-clutter
   const minThreshold = depth === 0 ? 0.003 : (depth === 1 ? 0.006 : 0.012);
   const maxItems = depth === 0 ? 30 : 20;
 
@@ -131,12 +130,13 @@ export function computeHierarchicalTreemap(
       };
 
       if (innerBounds.width >= 10 && innerBounds.height >= 10) {
+        const nextColorIdx = depth === 0 ? i : (colorIndex * 3 + i + 1) % 12;
         rect.children = computeHierarchicalTreemap(
           targetNode,
           innerBounds,
           depth + 1,
           maxDepth,
-          depth === 0 ? i : colorIndex
+          nextColorIdx
         );
       }
     }
@@ -162,7 +162,6 @@ function squarify(
   const results: TreemapRect[] = [];
   const totalArea = bounds.width * bounds.height;
 
-  // Convert sizes to normalized area values
   const normalizedItems = items.map((it) => ({
     ...it,
     area: (it.size / totalSum) * totalArea
@@ -174,13 +173,11 @@ function squarify(
   for (let i = 0; i < normalizedItems.length; i++) {
     const item = normalizedItems[i];
     const candidateRow = [...row, item];
-
     const side = Math.min(currentBounds.width, currentBounds.height);
 
     if (row.length === 0 || worst(row, side) >= worst(candidateRow, side)) {
       row = candidateRow;
     } else {
-      // Row was optimal, layout current row and update bounds
       currentBounds = layoutRow(row, currentBounds, results, totalSum, depth, colorIndex);
       row = [item];
     }
@@ -234,6 +231,7 @@ function layoutRow(
     const item = row[idx];
     const itemLength = rowThickness > 0 ? item.area / rowThickness : 0;
     const pct = totalSum > 0 ? item.size / totalSum : 0;
+    const itemColorIdx = depth === 0 ? results.length : (colorIndex * 2 + idx) % 12;
 
     let rect: TreemapRect;
 
@@ -251,7 +249,7 @@ function layoutRow(
         width: rowThickness,
         height: itemLength,
         node: item.node,
-        colorIndex: depth === 0 ? results.length : colorIndex
+        colorIndex: itemColorIdx
       };
       pos += itemLength;
     } else {
@@ -268,7 +266,7 @@ function layoutRow(
         width: itemLength,
         height: rowThickness,
         node: item.node,
-        colorIndex: depth === 0 ? results.length : colorIndex
+        colorIndex: itemColorIdx
       };
       pos += itemLength;
     }
