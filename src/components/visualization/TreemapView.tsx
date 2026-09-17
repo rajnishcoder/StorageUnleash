@@ -14,21 +14,23 @@ const CONTAINER_PALETTE = [
   '#3d3023', // Warm Earth Amber
   '#33233f', // Dark Plum / Violet
   '#193238', // Dark Sea Teal
-  '#3a2029', // Wine / Burgundy
+  '#302b20', // Dark Bronze
   '#21282e', // Charcoal Slate
-  '#332d20'  // Dark Bronze
+  '#282c37'  // Deep Graphite
 ];
 
-// Leaf tile fills matching DissectMac
+// Balanced, pleasing leaf palette (balanced distribution, no dominating red)
 const LEAF_PALETTE = [
-  '#f43f5e', // Rose / Red
-  '#f97316', // Orange
-  '#10b981', // Dev Green / Emerald
-  '#06b6d4', // Cyan
+  '#3b82f6', // Vibrant Blue
+  '#0d9488', // Emerald Teal
+  '#10b981', // Dev Green
   '#8b5cf6', // Violet / Purple
+  '#0284c7', // Sky Blue
+  '#f59e0b', // Warm Amber
+  '#06b6d4', // Cyan
+  '#64748b', // Cool Slate Gray
   '#ec4899', // Pink
-  '#3b82f6', // Blue
-  '#eab308'  // Amber
+  '#e11d48'  // Rose
 ];
 
 export const TreemapView: React.FC = () => {
@@ -92,10 +94,18 @@ export const TreemapView: React.FC = () => {
 
   const getLeafColor = (rect: TreemapRect, index: number) => {
     if (rect.type === 'other') return '#334155';
+    if (rect.type === 'directory') return getContainerBg(rect);
+
     if (rect.node?.extension) {
       const cat = categorizeFile(rect.node.extension);
       return CATEGORY_COLORS[cat] || LEAF_PALETTE[index % LEAF_PALETTE.length];
     }
+
+    // For raw data / blob files (like sha256-...)
+    if (rect.name.startsWith('sha256-') || rect.name.includes('blob') || !rect.name.includes('.')) {
+      return '#475569'; // Slate Charcoal
+    }
+
     return LEAF_PALETTE[index % LEAF_PALETTE.length];
   };
 
@@ -166,7 +176,8 @@ export const TreemapView: React.FC = () => {
     const isSelected = selectedNode?.id === rect.id;
     const hasChildren = rect.children && rect.children.length > 0;
 
-    if (rect.type === 'directory' && hasChildren) {
+    // Any directory node is rendered with container styling and header banner
+    if (rect.type === 'directory') {
       const bg = getContainerBg(rect);
       const showHeader = rect.width >= 45 && rect.height >= 25;
 
@@ -188,13 +199,13 @@ export const TreemapView: React.FC = () => {
 
           {showHeader && renderHeaders(rect)}
 
-          {/* Render nested children */}
-          {rect.children?.map((child, cIdx) => renderRect(child, cIdx))}
+          {/* Render nested children if present */}
+          {hasChildren && rect.children?.map((child, cIdx) => renderRect(child, cIdx))}
         </g>
       );
     }
 
-    // Leaf tile (File or bottom-level directory)
+    // Leaf file tile
     const leafFill = getLeafColor(rect, index);
     const showText = rect.width >= 35 && rect.height >= 20;
     const showSize = rect.width >= 55 && rect.height >= 35;
@@ -253,7 +264,6 @@ export const TreemapView: React.FC = () => {
       Math.min(dimensions.width - tooltipW - 12, Math.max(12, hoveredNode.x - tooltipW / 2))
     );
 
-    // If near top edge, place tooltip below cursor; otherwise place above
     const top =
       hoveredNode.y > tooltipH + 20
         ? Math.round(hoveredNode.y - tooltipH - 12)
