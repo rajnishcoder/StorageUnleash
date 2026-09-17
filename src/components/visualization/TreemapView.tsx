@@ -115,8 +115,8 @@ export const TreemapView: React.FC = () => {
     const bounds = containerRef.current.getBoundingClientRect();
     setHoveredNode({
       rect,
-      x: e.clientX - bounds.left,
-      y: e.clientY - bounds.top
+      x: Math.round(e.clientX - bounds.left),
+      y: Math.round(e.clientY - bounds.top)
     });
   };
 
@@ -243,21 +243,37 @@ export const TreemapView: React.FC = () => {
     );
   }
 
+  // Calculate sharp, pixel-aligned tooltip placement
+  const getTooltipStyle = () => {
+    if (!hoveredNode) return {};
+    const tooltipW = 280;
+    const tooltipH = 80;
+
+    const left = Math.round(
+      Math.min(dimensions.width - tooltipW - 12, Math.max(12, hoveredNode.x - tooltipW / 2))
+    );
+
+    // If near top edge, place tooltip below cursor; otherwise place above
+    const top =
+      hoveredNode.y > tooltipH + 20
+        ? Math.round(hoveredNode.y - tooltipH - 12)
+        : Math.round(hoveredNode.y + 18);
+
+    return {
+      left: `${left}px`,
+      top: `${top}px`
+    };
+  };
+
   return (
     <div
       className="treemap-container"
       ref={containerRef}
       onMouseLeave={() => setHoveredNode(null)}
     >
-      {/* Floating Sleek Tooltip matching DissectMac */}
+      {/* Crystal-Clear Floating Tooltip */}
       {hoveredNode && (
-        <div
-          className="treemap-floating-tooltip"
-          style={{
-            left: Math.min(dimensions.width - 180, Math.max(180, hoveredNode.x)),
-            top: Math.max(80, hoveredNode.y)
-          }}
-        >
+        <div className="treemap-floating-tooltip" style={getTooltipStyle()}>
           <div className="tooltip-name">{hoveredNode.rect.name}</div>
           <div className="tooltip-size">{formatBytes(hoveredNode.rect.size)}</div>
           <div className="tooltip-path">{hoveredNode.rect.path || hoveredNode.rect.name}</div>
