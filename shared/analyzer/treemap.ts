@@ -15,6 +15,7 @@ export interface TreemapRect {
   node?: FileNode;
   children?: TreemapRect[];
   colorIndex?: number;
+  collapsedHeaders?: string[]; // If directory has single child chain (e.g. .ollama > models > blobs)
 }
 
 export interface Bounds {
@@ -24,29 +25,28 @@ export interface Bounds {
   height: number;
 }
 
-interface LayoutItem {
+interface ItemWithSize {
   node?: FileNode;
   size: number;
-  area: number;
   isOther?: boolean;
   otherCount?: number;
 }
 
 /**
- * Computes a multi-level hierarchical nested squarified treemap.
+ * Computes a multi-level hierarchical nested squarified treemap matching DissectMac.
  */
 export function computeHierarchicalTreemap(
   node: FileNode | undefined,
   bounds: Bounds,
   depth: number = 0,
-  maxDepth: number = 3,
+  maxDepth: number = 4,
   colorIndex: number = 0
 ): TreemapRect[] {
-  if (!node || !node.children || node.children.length === 0 || bounds.width <= 4 || bounds.height <= 4) {
+  if (!node || !node.children || node.children.length === 0 || bounds.width <= 6 || bounds.height <= 6) {
     return [];
   }
 
-  // Filter valid positive-size children and sort descending
+  // Filter positive-size children and sort descending
   const validChildren = node.children
     .filter((c) => c.size > 0)
     .sort((a, b) => b.size - a.size);
@@ -56,9 +56,9 @@ export function computeHierarchicalTreemap(
   const totalSum = validChildren.reduce((acc, c) => acc + c.size, 0);
   if (totalSum <= 0) return [];
 
-  // Group very small items to avoid clutter
-  const minPercentage = depth === 0 ? 0.003 : (depth === 1 ? 0.008 : 0.015);
-  const maxItems = depth === 0 ? 25 : 15;
+  // Minimum threshold to prevent micro-clutter
+  const minThreshold = depth === 0 ? 0.003 : (depth === 1 ? 0.006 : 0.012);
+  const maxItems = depth === 0 ? 30 : 20;
 
   const mainItems: FileNode[] = [];
   const otherItems: FileNode[] = [];
@@ -66,135 +66,155 @@ export function computeHierarchicalTreemap(
   for (let i = 0; i < validChildren.length; i++) {
     const child = validChildren[i];
     const pct = child.size / totalSum;
-    if (i < maxItems && pct >= minPercentage) {
+    if (i < maxItems && pct >= minThreshold) {
       mainItems.push(child);
     } else {
       otherItems.push(child);
     }
   }
 
-  const layoutNodes: LayoutItem[] = mainItems.map((n) => ({
+  const itemsToLayout: ItemWithSize[] = mainItems.map((n) => ({
     node: n,
-    size: n.size,
-    area: 0
+    size: n.size
   }));
 
   if (otherItems.length > 0) {
     const otherSize = otherItems.reduce((acc, it) => acc + it.size, 0);
     if (otherSize > 0) {
-      layoutNodes.push({
+      itemsToLayout.push({
         size: otherSize,
-        area: 0,
         isOther: true,
         otherCount: otherItems.length
       });
     }
   }
 
-  const totalArea = bounds.width * bounds.height;
-  const layoutSum = layoutNodes.reduce((acc, item) => acc + item.size, 0);
-  if (layoutSum <= 0) return [];
+  const rects = squarify(itemsToLayout, bounds, totalSum, depth, colorIndex);
 
-  for (const item of layoutNodes) {
-    item.area = (item.size / layoutSum) * totalArea;
-  }
-
-  const flatTiles: TreemapRect[] = [];
-  squarifyLayout(layoutNodes, [], { ...bounds }, flatTiles, totalSum, depth, colorIndex);
-
-  // For each tile, if it's a directory with sufficient area and depth < maxDepth, recursively compute its children
-  for (let i = 0; i < flatTiles.length; i++) {
-    const tile = flatTiles[i];
+  // Recursively layout children inside directory tiles
+  for (let i = 0; i < rects.length; i++) {
+    const rect = rects[i];
     if (
-      tile.type === 'directory' &&
-      tile.node &&
-      tile.node.children &&
-      tile.node.children.length > 0 &&
+      rect.type === 'directory' &&
+      rect.node &&
+      rect.node.children &&
+      rect.node.children.length > 0 &&
       depth < maxDepth &&
-      tile.width >= 70 &&
-      tile.height >= 55
+      rect.width >= 55 &&
+      rect.height >= 45
     ) {
-      const headerHeight = 19;
-      const padding = 3;
+      // Check for single-child chain compression (e.g. .ollama -> models -> blobs)
+      let targetNode = rect.node;
+      const collapsed: string[] = [targetNode.name];
+
+      while (
+        targetNode.children &&
+        targetNode.children.length === 1 &&
+        targetNode.children[0].type === 'directory' &&
+        targetNode.children[0].children &&
+        targetNode.children[0].children.length > 0
+      ) {
+        targetNode = targetNode.children[0];
+        collapsed.push(targetNode.name);
+      }
+
+      rect.collapsedHeaders = collapsed;
+
+      const headerHeight = Math.min(22 * collapsed.length, Math.floor(rect.height * 0.45));
+      const pad = 2;
+
       const innerBounds: Bounds = {
-        x: tile.x + padding,
-        y: tile.y + headerHeight + 1,
-        width: Math.max(0, tile.width - padding * 2),
-        height: Math.max(0, tile.height - headerHeight - padding - 1)
+        x: rect.x + pad,
+        y: rect.y + headerHeight + 1,
+        width: Math.max(0, rect.width - pad * 2),
+        height: Math.max(0, rect.height - headerHeight - pad - 1)
       };
 
-      tile.children = computeHierarchicalTreemap(
-        tile.node,
-        innerBounds,
-        depth + 1,
-        maxDepth,
-        depth === 0 ? i : colorIndex
-      );
+      if (innerBounds.width >= 10 && innerBounds.height >= 10) {
+        rect.children = computeHierarchicalTreemap(
+          targetNode,
+          innerBounds,
+          depth + 1,
+          maxDepth,
+          depth === 0 ? i : colorIndex
+        );
+      }
     }
   }
 
-  return flatTiles;
+  return rects;
 }
 
 /**
- * Standard 2D Squarify Layout Algorithm
+ * Standard Squarified Treemap implementation (Bruls et al.)
  */
-function squarifyLayout(
-  children: LayoutItem[],
-  row: LayoutItem[],
+function squarify(
+  items: ItemWithSize[],
   bounds: Bounds,
-  results: TreemapRect[],
   totalSum: number,
   depth: number,
   colorIndex: number
-): void {
-  if (bounds.width <= 0 || bounds.height <= 0) return;
+): TreemapRect[] {
+  if (items.length === 0 || bounds.width <= 0 || bounds.height <= 0 || totalSum <= 0) {
+    return [];
+  }
 
-  if (children.length === 0) {
-    if (row.length > 0) {
-      layoutRow(row, bounds, results, totalSum, depth, colorIndex);
+  const results: TreemapRect[] = [];
+  const totalArea = bounds.width * bounds.height;
+
+  // Convert sizes to normalized area values
+  const normalizedItems = items.map((it) => ({
+    ...it,
+    area: (it.size / totalSum) * totalArea
+  }));
+
+  let currentBounds = { ...bounds };
+  let row: typeof normalizedItems = [];
+
+  for (let i = 0; i < normalizedItems.length; i++) {
+    const item = normalizedItems[i];
+    const candidateRow = [...row, item];
+
+    const side = Math.min(currentBounds.width, currentBounds.height);
+
+    if (row.length === 0 || worst(row, side) >= worst(candidateRow, side)) {
+      row = candidateRow;
+    } else {
+      // Row was optimal, layout current row and update bounds
+      currentBounds = layoutRow(row, currentBounds, results, totalSum, depth, colorIndex);
+      row = [item];
     }
-    return;
   }
 
-  const c = children[0];
-  if (row.length === 0) {
-    squarifyLayout(children.slice(1), [c], bounds, results, totalSum, depth, colorIndex);
-    return;
+  if (row.length > 0) {
+    layoutRow(row, currentBounds, results, totalSum, depth, colorIndex);
   }
 
-  const sideLength = Math.min(bounds.width, bounds.height);
-  if (worstAspectRatio(row, sideLength) <= worstAspectRatio([...row, c], sideLength)) {
-    // Adding c improves or preserves aspect ratio
-    squarifyLayout(children.slice(1), [...row, c], bounds, results, totalSum, depth, colorIndex);
-  } else {
-    // Current row is optimal; layout current row and start new row in remaining bounds
-    const remainingBounds = layoutRow(row, bounds, results, totalSum, depth, colorIndex);
-    squarifyLayout(children, [], remainingBounds, results, totalSum, depth, colorIndex);
-  }
+  return results;
 }
 
-function worstAspectRatio(row: LayoutItem[], sideLength: number): number {
-  if (row.length === 0 || sideLength <= 0) return Infinity;
-  const rowArea = row.reduce((s, it) => s + it.area, 0);
-  if (rowArea <= 0) return Infinity;
-
+function worst(row: Array<{ area: number }>, side: number): number {
+  if (row.length === 0 || side <= 0) return Infinity;
+  const s2 = side * side;
   let maxArea = -Infinity;
   let minArea = Infinity;
+  let sumArea = 0;
 
-  for (const item of row) {
-    if (item.area > maxArea) maxArea = item.area;
-    if (item.area < minArea) minArea = item.area;
+  for (let i = 0; i < row.length; i++) {
+    const a = row[i].area;
+    sumArea += a;
+    if (a > maxArea) maxArea = a;
+    if (a < minArea) minArea = a;
   }
 
-  const s2 = sideLength * sideLength;
-  const r2 = rowArea * rowArea;
+  if (sumArea <= 0 || minArea <= 0) return Infinity;
+  const r2 = sumArea * sumArea;
 
   return Math.max((s2 * maxArea) / r2, r2 / (s2 * minArea));
 }
 
 function layoutRow(
-  row: LayoutItem[],
+  row: Array<ItemWithSize & { area: number }>,
   bounds: Bounds,
   results: TreemapRect[],
   totalSum: number,
@@ -203,13 +223,12 @@ function layoutRow(
 ): Bounds {
   if (row.length === 0) return bounds;
 
-  const isWidthLonger = bounds.width >= bounds.height;
+  const isHorizontal = bounds.width >= bounds.height;
+  const sideLength = isHorizontal ? bounds.height : bounds.width;
   const rowArea = row.reduce((s, it) => s + it.area, 0);
-  const sideLength = isWidthLonger ? bounds.height : bounds.width;
-
   const rowThickness = sideLength > 0 ? rowArea / sideLength : 0;
 
-  let currentPos = isWidthLonger ? bounds.y : bounds.x;
+  let pos = isHorizontal ? bounds.y : bounds.x;
 
   for (let idx = 0; idx < row.length; idx++) {
     const item = row[idx];
@@ -218,10 +237,9 @@ function layoutRow(
 
     let rect: TreemapRect;
 
-    if (isWidthLonger) {
-      // Row is vertical slice of width = rowThickness, items stacked vertically
+    if (isHorizontal) {
       rect = {
-        id: item.isOther ? `other-${depth}-${currentPos}` : (item.node?.id || item.node?.path || Math.random().toString()),
+        id: item.isOther ? `other-${depth}-${bounds.x}-${pos}` : (item.node?.id || item.node?.path || Math.random().toString()),
         name: item.isOther ? `Other (${item.otherCount} items)` : (item.node?.name || 'Unnamed'),
         path: item.node?.path || '',
         type: item.isOther ? 'other' : (item.node?.type || 'file'),
@@ -229,38 +247,37 @@ function layoutRow(
         percentage: pct,
         depth,
         x: bounds.x,
-        y: currentPos,
+        y: pos,
         width: rowThickness,
         height: itemLength,
         node: item.node,
         colorIndex: depth === 0 ? results.length : colorIndex
       };
-      currentPos += itemLength;
+      pos += itemLength;
     } else {
-      // Row is horizontal slice of height = rowThickness, items placed side-by-side horizontally
       rect = {
-        id: item.isOther ? `other-${depth}-${currentPos}` : (item.node?.id || item.node?.path || Math.random().toString()),
+        id: item.isOther ? `other-${depth}-${pos}-${bounds.y}` : (item.node?.id || item.node?.path || Math.random().toString()),
         name: item.isOther ? `Other (${item.otherCount} items)` : (item.node?.name || 'Unnamed'),
         path: item.node?.path || '',
         type: item.isOther ? 'other' : (item.node?.type || 'file'),
         size: item.size,
         percentage: pct,
         depth,
-        x: currentPos,
+        x: pos,
         y: bounds.y,
         width: itemLength,
         height: rowThickness,
         node: item.node,
         colorIndex: depth === 0 ? results.length : colorIndex
       };
-      currentPos += itemLength;
+      pos += itemLength;
     }
 
     results.push(rect);
   }
 
-  // Calculate remaining bounding box
-  if (isWidthLonger) {
+  // Return remaining bounds
+  if (isHorizontal) {
     return {
       x: bounds.x + rowThickness,
       y: bounds.y,

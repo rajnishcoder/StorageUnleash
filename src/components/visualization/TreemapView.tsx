@@ -7,25 +7,25 @@ import { Layers } from 'lucide-react';
 import type { FileNode } from '@shared/models/fileNode';
 import './TreemapView.css';
 
-// Rich branch base tones for nested directory containers
+// Rich container background tones matching DissectMac screenshot
 const CONTAINER_PALETTE = [
-  '#2a3b4c', // Steel Blue
-  '#2b3f2e', // Forest Green
-  '#4a3a2a', // Warm Amber / Brown
-  '#3d2b4f', // Deep Violet
-  '#1d3d44', // Dark Teal
-  '#4a2634', // Deep Rose / Wine
-  '#263238', // Slate Charcoal
-  '#3e3526'  // Bronze
+  '#252e3e', // Deep Steel Blue
+  '#243527', // Dark Forest Olive
+  '#3d3023', // Warm Earth Amber
+  '#33233f', // Dark Plum / Violet
+  '#193238', // Dark Sea Teal
+  '#3a2029', // Wine / Burgundy
+  '#21282e', // Charcoal Slate
+  '#332d20'  // Dark Bronze
 ];
 
-// Vibrant leaf tile colors matching reference screenshot
+// Leaf tile fills matching DissectMac
 const LEAF_PALETTE = [
   '#f43f5e', // Rose / Red
   '#f97316', // Orange
-  '#10b981', // Emerald / Dev Green
+  '#10b981', // Dev Green / Emerald
   '#06b6d4', // Cyan
-  '#8b5cf6', // Violet
+  '#8b5cf6', // Violet / Purple
   '#ec4899', // Pink
   '#3b82f6', // Blue
   '#eab308'  // Amber
@@ -59,16 +59,29 @@ export const TreemapView: React.FC = () => {
     return () => observer.disconnect();
   }, []);
 
+  // Compute hierarchical treemap
   const hierarchicalRects = useMemo(() => {
     if (!currentDirectory || dimensions.width <= 0 || dimensions.height <= 0) {
       return [];
     }
 
+    // If current directory has only 1 child directory (e.g. Users -> rajnishkumar), unwrap it for full-screen density
+    let rootToRender = currentDirectory;
+    if (
+      rootToRender.children &&
+      rootToRender.children.length === 1 &&
+      rootToRender.children[0].type === 'directory' &&
+      rootToRender.children[0].children &&
+      rootToRender.children[0].children.length > 0
+    ) {
+      rootToRender = rootToRender.children[0];
+    }
+
     return computeHierarchicalTreemap(
-      currentDirectory,
+      rootToRender,
       { x: 0, y: 0, width: dimensions.width, height: dimensions.height },
       0,
-      3
+      4
     );
   }, [currentDirectory, dimensions]);
 
@@ -107,6 +120,47 @@ export const TreemapView: React.FC = () => {
     });
   };
 
+  // Render stacked directory header bars (e.g. .ollama > models > blobs)
+  const renderHeaders = (rect: TreemapRect) => {
+    const headers = rect.collapsedHeaders || [rect.name];
+    const headerH = 20;
+
+    return headers.map((headerName, hIdx) => {
+      const hY = rect.y + hIdx * (headerH + 1);
+      const isTop = hIdx === 0;
+
+      return (
+        <React.Fragment key={`${rect.id}-h-${hIdx}`}>
+          <rect
+            className="dir-header-bar"
+            x={rect.x}
+            y={hY}
+            width={rect.width}
+            height={headerH}
+          />
+          <text
+            className="dir-header-text"
+            x={rect.x + 6}
+            y={hY + 14}
+          >
+            {headerName.length > 22 && rect.width < 140
+              ? headerName.substring(0, 18) + '..'
+              : headerName}
+          </text>
+          {isTop && rect.width >= 90 && (
+            <text
+              className="dir-header-size"
+              x={rect.x + rect.width - 6}
+              y={hY + 14}
+            >
+              {formatBytes(rect.size, 1)}
+            </text>
+          )}
+        </React.Fragment>
+      );
+    });
+  };
+
   // Recursive Renderer for Treemap Tiles
   const renderRect = (rect: TreemapRect, index: number): React.ReactNode => {
     const isSelected = selectedNode?.id === rect.id;
@@ -114,7 +168,7 @@ export const TreemapView: React.FC = () => {
 
     if (rect.type === 'directory' && hasChildren) {
       const bg = getContainerBg(rect);
-      const showHeader = rect.width >= 50 && rect.height >= 25;
+      const showHeader = rect.width >= 45 && rect.height >= 25;
 
       return (
         <g
@@ -132,35 +186,7 @@ export const TreemapView: React.FC = () => {
             fill={bg}
           />
 
-          {showHeader && (
-            <>
-              <rect
-                className="dir-header-bar"
-                x={rect.x}
-                y={rect.y}
-                width={rect.width}
-                height={18}
-              />
-              <text
-                className="dir-header-text"
-                x={rect.x + 6}
-                y={rect.y + 13}
-              >
-                {rect.name.length > 18 && rect.width < 120
-                  ? rect.name.substring(0, 14) + '..'
-                  : rect.name}
-              </text>
-              {rect.width >= 100 && (
-                <text
-                  className="dir-header-size"
-                  x={rect.x + rect.width - 6}
-                  y={rect.y + 13}
-                >
-                  {formatBytes(rect.size, 1)}
-                </text>
-              )}
-            </>
-          )}
+          {showHeader && renderHeaders(rect)}
 
           {/* Render nested children */}
           {rect.children?.map((child, cIdx) => renderRect(child, cIdx))}
@@ -170,8 +196,8 @@ export const TreemapView: React.FC = () => {
 
     // Leaf tile (File or bottom-level directory)
     const leafFill = getLeafColor(rect, index);
-    const showText = rect.width >= 40 && rect.height >= 25;
-    const showSize = rect.width >= 60 && rect.height >= 40;
+    const showText = rect.width >= 35 && rect.height >= 20;
+    const showSize = rect.width >= 55 && rect.height >= 35;
 
     return (
       <g
@@ -190,7 +216,7 @@ export const TreemapView: React.FC = () => {
         />
 
         {showText && (
-          <text className="leaf-text" x={rect.x + 5} y={rect.y + 14}>
+          <text className="leaf-text" x={rect.x + 5} y={rect.y + 13}>
             {rect.name.length > 14 && rect.width < 90
               ? rect.name.substring(0, 11) + '..'
               : rect.name}
@@ -198,7 +224,7 @@ export const TreemapView: React.FC = () => {
         )}
 
         {showSize && (
-          <text className="leaf-size" x={rect.x + 5} y={rect.y + 28}>
+          <text className="leaf-size" x={rect.x + 5} y={rect.y + 26}>
             {formatBytes(rect.size, 1)}
           </text>
         )}
@@ -223,12 +249,12 @@ export const TreemapView: React.FC = () => {
       ref={containerRef}
       onMouseLeave={() => setHoveredNode(null)}
     >
-      {/* Floating Tooltip */}
+      {/* Floating Sleek Tooltip matching DissectMac */}
       {hoveredNode && (
         <div
           className="treemap-floating-tooltip"
           style={{
-            left: Math.min(dimensions.width - 160, Math.max(160, hoveredNode.x)),
+            left: Math.min(dimensions.width - 180, Math.max(180, hoveredNode.x)),
             top: Math.max(80, hoveredNode.y)
           }}
         >
