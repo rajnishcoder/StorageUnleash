@@ -2,6 +2,10 @@ import React, { useEffect } from 'react';
 import {
   Zap,
   Home,
+  Users,
+  AppWindow,
+  Download,
+  FileText,
   FolderOpen,
   Trash2,
   Code2,
@@ -14,10 +18,12 @@ import {
   Archive,
   Cloud,
   Server,
-  Check
+  Check,
+  Folder
 } from 'lucide-react';
 import { useStorageStore } from '../../stores/storageStore';
 import { formatBytes } from '@shared/utils/formatters';
+import type { QuickTarget } from '@shared/types/ipc';
 import './Sidebar.css';
 
 const DEV_BLOAT_ITEMS = [
@@ -46,6 +52,9 @@ export const Sidebar: React.FC = () => {
   const {
     startScan,
     init,
+    quickTargets,
+    currentScanPath,
+    scanStatus,
     diskSpace,
     trashInfo,
     platform,
@@ -79,6 +88,23 @@ export const Sidebar: React.FC = () => {
     }
   };
 
+  const getTargetIcon = (iconType: QuickTarget['iconType']) => {
+    switch (iconType) {
+      case 'home':
+        return <Home size={14} color="#38bdf8" />;
+      case 'users':
+        return <Users size={14} color="#a855f7" />;
+      case 'applications':
+        return <AppWindow size={14} color="#06b6d4" />;
+      case 'downloads':
+        return <Download size={14} color="#f97316" />;
+      case 'documents':
+        return <FileText size={14} color="#10b981" />;
+      default:
+        return <Folder size={14} color="#94a3b8" />;
+    }
+  };
+
   // Donut Gauge math
   const usedPercentage = diskSpace ? diskSpace.percentage : 48;
   const radius = 20;
@@ -103,6 +129,35 @@ export const Sidebar: React.FC = () => {
             <span>Choose Folder</span>
           </button>
         </div>
+
+        {/* Quick Locations */}
+        {quickTargets.length > 0 && (
+          <div>
+            <div className="sidebar-section-heading">QUICK LOCATIONS</div>
+            <div className="quick-locations-grid">
+              {quickTargets.map((target) => {
+                const isActive = currentScanPath === target.path;
+                return (
+                  <button
+                    key={target.id}
+                    type="button"
+                    className={`quick-loc-item ${isActive ? 'active' : ''}`}
+                    onClick={() => startScan(target.path)}
+                    title={target.path}
+                  >
+                    <div className="quick-loc-icon">{getTargetIcon(target.iconType)}</div>
+                    <span className="quick-loc-name">{target.name}</span>
+                    {isActive && (
+                      <span className="quick-loc-badge">
+                        {scanStatus === 'scanning' ? 'Scanning' : 'Active'}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Disk Storage Gauge */}
         <div>
