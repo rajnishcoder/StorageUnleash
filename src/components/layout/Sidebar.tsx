@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import {
   Zap,
   Home,
@@ -19,26 +19,31 @@ import {
   Cloud,
   Server,
   Check,
-  Folder
+  Folder,
+  Bot,
+  FileCode
 } from 'lucide-react';
 import { useStorageStore } from '../../stores/storageStore';
 import { formatBytes } from '@shared/utils/formatters';
+import { calculateSmartFilterStats } from '@shared/analyzer/filterMatcher';
 import type { QuickTarget } from '@shared/types/ipc';
 import './Sidebar.css';
 
 const SMART_FILTER_ITEMS = [
-  { id: 'node', label: 'Node.js', icon: Package },
-  { id: 'xcode', label: 'Xcode', icon: Code2 },
-  { id: 'artifacts', label: 'Build Artifacts', icon: Layers },
-  { id: 'android', label: 'Android SDK', icon: Smartphone },
-  { id: 'docker', label: 'Docker Data', icon: Container },
-  { id: 'videos', label: 'Videos', icon: Film },
+  { id: 'ai_models', label: 'AI & LLM Models', icon: Bot },
+  { id: 'node', label: 'Node.js & npm', icon: Package },
+  { id: 'python', label: 'Python & Envs', icon: FileCode },
+  { id: 'logs_caches', label: 'Caches & Logs', icon: Folder },
   { id: 'disk_images', label: 'Disk Images', icon: HardDrive },
+  { id: 'artifacts', label: 'Build Artifacts', icon: Layers },
+  { id: 'docker', label: 'Docker Data', icon: Container },
+  { id: 'xcode', label: 'Xcode & Simulators', icon: Code2 },
+  { id: 'android', label: 'Android SDK', icon: Smartphone },
+  { id: 'videos', label: 'Videos', icon: Film },
   { id: 'archives', label: 'Archives', icon: Archive },
-  { id: 'ios_backups', label: 'iOS Backups', icon: Cloud },
+  { id: 'large_media', label: 'Large Files (>100M)', icon: Film },
   { id: 'virtual_machines', label: 'Virtual Machines', icon: Server },
-  { id: 'large_media', label: 'Large Media', icon: Film },
-  { id: 'logs_caches', label: 'Caches & Logs', icon: Folder }
+  { id: 'ios_backups', label: 'iOS Backups', icon: Cloud }
 ];
 
 const FILE_TYPE_LEGEND = [
@@ -62,8 +67,24 @@ export const Sidebar: React.FC = () => {
     platform,
     devFilters,
     toggleDevFilter,
-    cleanupList
+    cleanupList,
+    currentDirectory,
+    scanResult
   } = useStorageStore();
+
+  const filterStats = useMemo(() => {
+    return calculateSmartFilterStats(currentDirectory || scanResult?.root || null);
+  }, [currentDirectory, scanResult]);
+
+  const sortedFilterItems = useMemo(() => {
+    return [...SMART_FILTER_ITEMS].sort((a, b) => {
+      const sizeA = filterStats[a.id]?.size || 0;
+      const sizeB = filterStats[b.id]?.size || 0;
+      if (sizeA > 0 && sizeB === 0) return -1;
+      if (sizeA === 0 && sizeB > 0) return 1;
+      return sizeB - sizeA;
+    });
+  }, [filterStats]);
 
   useEffect(() => {
     init();
@@ -245,20 +266,29 @@ export const Sidebar: React.FC = () => {
         <div>
           <div className="sidebar-section-heading">SMART FILTERS</div>
           <div className="filter-list">
-            {SMART_FILTER_ITEMS.map((item) => {
+            {sortedFilterItems.map((item) => {
               const Icon = item.icon;
               const isChecked = !!devFilters[item.id];
+              const stat = filterStats[item.id] || { size: 0, count: 0 };
+              const hasSize = stat.size > 0;
+
               return (
                 <div
                   key={item.id}
-                  className={`filter-item ${isChecked ? 'active' : ''}`}
+                  className={`filter-item ${isChecked ? 'active' : ''} ${!hasSize ? 'zero-stat' : ''}`}
                   onClick={() => toggleDevFilter(item.id)}
+                  title={hasSize ? `${stat.count} items (${formatBytes(stat.size)})` : `0 items found in current scan`}
                 >
                   <div className="filter-checkbox">
                     {isChecked && <Check size={10} color="#ffffff" />}
                   </div>
                   <div className="filter-icon"><Icon size={14} /></div>
                   <span className="filter-label">{item.label}</span>
+                  {hasSize ? (
+                    <span className="filter-size-badge">{formatBytes(stat.size, 1)}</span>
+                  ) : (
+                    <span className="filter-size-zero">0 B</span>
+                  )}
                 </div>
               );
             })}

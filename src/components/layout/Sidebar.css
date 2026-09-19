@@ -304,6 +304,37 @@
 
 .filter-label {
   flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.filter-size-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.filter-size-zero {
+  font-size: 10px;
+  color: #475569;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.filter-item.zero-stat {
+  opacity: 0.55;
+}
+
+.filter-item.zero-stat:hover {
+  opacity: 0.9;
 }
 
 /* File Types Legend */
