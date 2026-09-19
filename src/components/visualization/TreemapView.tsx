@@ -120,10 +120,6 @@ export const TreemapView: React.FC<TreemapViewProps> = ({ onContextMenu }) => {
     return () => observer.disconnect();
   }, []);
 
-  const hasActiveFilter = useMemo(() => {
-    return Object.values(devFilters).some(Boolean) || searchQuery.trim().length > 0;
-  }, [devFilters, searchQuery]);
-
   // Compute hierarchical treemap
   const hierarchicalRects = useMemo(() => {
     if (!currentDirectory || dimensions.width <= 0 || dimensions.height <= 0) {
@@ -149,6 +145,24 @@ export const TreemapView: React.FC<TreemapViewProps> = ({ onContextMenu }) => {
       4
     );
   }, [currentDirectory, dimensions]);
+
+  // Only activate spotlight dimming when at least one item matches in the visible tree
+  const hasMatchingItems = useMemo(() => {
+    const isFilterOn = Object.values(devFilters).some(Boolean) || searchQuery.trim().length > 0;
+    if (!isFilterOn || hierarchicalRects.length === 0) return false;
+
+    function checkMatch(rect: TreemapRect): boolean {
+      if (isNodeHighlighted(rect.node, devFilters, searchQuery)) return true;
+      if (rect.children) {
+        for (const child of rect.children) {
+          if (checkMatch(child)) return true;
+        }
+      }
+      return false;
+    }
+
+    return hierarchicalRects.some(checkMatch);
+  }, [devFilters, searchQuery, hierarchicalRects]);
 
   const getContainerBg = (rect: TreemapRect) => {
     const idx = (rect.colorIndex || 0) % BRANCH_CONTAINER_THEMES.length;
@@ -250,7 +264,7 @@ export const TreemapView: React.FC<TreemapViewProps> = ({ onContextMenu }) => {
     const isMatched = isNodeHighlighted(rect.node, devFilters, searchQuery);
 
     let filterClass = '';
-    if (hasActiveFilter) {
+    if (hasMatchingItems) {
       filterClass = isMatched ? 'highlighted' : 'dimmed';
     }
 
