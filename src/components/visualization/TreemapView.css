@@ -100,7 +100,7 @@
   -webkit-font-smoothing: antialiased;
 }
 
-/* Dev Bloat & Search Filter Spotlight Effect matching screenshots */
+/* Smart Filters & Search Spotlight Effect */
 .tree-dir-box.dimmed,
 .tree-leaf-box.dimmed {
   opacity: 0.22;

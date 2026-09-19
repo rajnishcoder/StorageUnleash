@@ -26,19 +26,19 @@ import { formatBytes } from '@shared/utils/formatters';
 import type { QuickTarget } from '@shared/types/ipc';
 import './Sidebar.css';
 
-const DEV_BLOAT_ITEMS = [
+const SMART_FILTER_ITEMS = [
   { id: 'node', label: 'Node.js', icon: Package },
   { id: 'xcode', label: 'Xcode', icon: Code2 },
   { id: 'artifacts', label: 'Build Artifacts', icon: Layers },
-  { id: 'android', label: 'Android', icon: Smartphone },
-  { id: 'docker', label: 'Docker', icon: Container },
+  { id: 'android', label: 'Android SDK', icon: Smartphone },
+  { id: 'docker', label: 'Docker Data', icon: Container },
   { id: 'videos', label: 'Videos', icon: Film },
   { id: 'disk_images', label: 'Disk Images', icon: HardDrive },
   { id: 'archives', label: 'Archives', icon: Archive },
   { id: 'ios_backups', label: 'iOS Backups', icon: Cloud },
   { id: 'virtual_machines', label: 'Virtual Machines', icon: Server },
   { id: 'large_media', label: 'Large Media', icon: Film },
-  { id: 'logs_caches', label: 'Logs & Caches', icon: Folder }
+  { id: 'logs_caches', label: 'Caches & Logs', icon: Folder }
 ];
 
 const FILE_TYPE_LEGEND = [
@@ -241,11 +241,11 @@ export const Sidebar: React.FC = () => {
           <span className="trash-action">Empty</span>
         </div>
 
-        {/* Dev Bloat Filters */}
+        {/* Smart Filters */}
         <div>
-          <div className="sidebar-section-heading">&lt;&gt; DEV BLOAT FILTERS</div>
+          <div className="sidebar-section-heading">SMART FILTERS</div>
           <div className="filter-list">
-            {DEV_BLOAT_ITEMS.map((item) => {
+            {SMART_FILTER_ITEMS.map((item) => {
               const Icon = item.icon;
               const isChecked = !!devFilters[item.id];
               return (
