@@ -3,16 +3,17 @@ import { useStorageStore } from '../../stores/storageStore';
 import { findLargestFiles } from '@shared/analyzer/largestFiles';
 import { categorizeFile, CATEGORY_COLORS, CATEGORY_LABELS } from '@shared/analyzer/categorizer';
 import { formatBytes, truncatePath } from '@shared/utils/formatters';
-import { File, ExternalLink, Trash2, Search } from 'lucide-react';
+import { File, ExternalLink, Trash2, Search, Layers, Check } from 'lucide-react';
 import type { FileNode } from '@shared/models/fileNode';
 import './LargestFilesView.css';
 
 interface LargestFilesViewProps {
   onTrashRequest: (node: FileNode) => void;
+  onContextMenu?: (e: React.MouseEvent, node: FileNode) => void;
 }
 
-export const LargestFilesView: React.FC<LargestFilesViewProps> = ({ onTrashRequest }) => {
-  const { scanResult, platform } = useStorageStore();
+export const LargestFilesView: React.FC<LargestFilesViewProps> = ({ onTrashRequest, onContextMenu }) => {
+  const { scanResult, platform, cleanupList, toggleCleanupItem } = useStorageStore();
   const [searchQuery, setSearchQuery] = useState('');
 
   const largestFiles = useMemo(() => {
@@ -68,9 +69,20 @@ export const LargestFilesView: React.FC<LargestFilesViewProps> = ({ onTrashReque
             {filteredFiles.map((file, idx) => {
               const category = categorizeFile(file.extension || file.name);
               const color = CATEGORY_COLORS[category];
+              const isInCleanup = cleanupList.some((it) => it.path === file.path);
 
               return (
-                <tr key={file.id || file.path || idx} className="largest-files-row">
+                <tr
+                  key={file.id || file.path || idx}
+                  className="largest-files-row"
+                  onContextMenu={(e) => {
+                    if (onContextMenu) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onContextMenu(e, file);
+                    }
+                  }}
+                >
                   <td>{idx + 1}</td>
                   <td>
                     <div className="file-name-cell">
@@ -91,6 +103,14 @@ export const LargestFilesView: React.FC<LargestFilesViewProps> = ({ onTrashReque
                   </td>
                   <td>
                     <div className="file-actions-cell">
+                      <button
+                        type="button"
+                        className={`table-btn ${isInCleanup ? 'active-cleanup' : ''}`}
+                        onClick={() => toggleCleanupItem(file)}
+                        title={isInCleanup ? 'Remove from cleanup list' : 'Add to cleanup list'}
+                      >
+                        {isInCleanup ? <Check size={12} color="#10b981" /> : <Layers size={12} color="#f59e0b" />}
+                      </button>
                       <button
                         type="button"
                         className="table-btn"

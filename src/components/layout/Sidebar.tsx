@@ -61,7 +61,8 @@ export const Sidebar: React.FC = () => {
     trashInfo,
     platform,
     devFilters,
-    toggleDevFilter
+    toggleDevFilter,
+    cleanupList
   } = useStorageStore();
 
   useEffect(() => {
@@ -209,6 +210,27 @@ export const Sidebar: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Cleanup Queue Section */}
+        {cleanupList.length > 0 && (
+          <div>
+            <div className="sidebar-section-heading">CLEANUP QUEUE</div>
+            <div
+              className="quick-loc-item"
+              style={{
+                borderColor: 'rgba(245, 158, 11, 0.35)',
+                background: 'rgba(245, 158, 11, 0.08)'
+              }}
+            >
+              <div className="quick-loc-icon">
+                <Layers size={14} color="#f59e0b" />
+              </div>
+              <span className="quick-loc-name" style={{ color: '#fde047', fontWeight: 600 }}>
+                {cleanupList.length} {cleanupList.length === 1 ? 'item' : 'items'} ({formatBytes(cleanupList.reduce((acc, it) => acc + it.size, 0), 1)})
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Trash Monitor */}
         <div className="trash-row">

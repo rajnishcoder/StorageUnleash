@@ -171,3 +171,64 @@
   background: rgba(244, 63, 94, 0.22);
   color: #ffffff;
 }
+
+.cleanup-floating-pill {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 16px;
+  background: rgba(24, 28, 38, 0.95);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  border-radius: 9999px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(245, 158, 11, 0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  cursor: pointer;
+  animation: pill-slide-up 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.cleanup-floating-pill:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.6), 0 0 20px rgba(245, 158, 11, 0.25);
+}
+
+@keyframes pill-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pill-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.pill-clean-btn {
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #111827;
+  background: #f59e0b;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.pill-clean-btn:hover {
+  background: #fbbf24;
+}
+

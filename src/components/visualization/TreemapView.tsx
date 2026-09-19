@@ -40,7 +40,11 @@ const BRANCH_LEAF_COLORS = [
   '#0ea5e9'  // Sky
 ];
 
-export const TreemapView: React.FC = () => {
+interface TreemapViewProps {
+  onContextMenu?: (e: React.MouseEvent, node: FileNode) => void;
+}
+
+export const TreemapView: React.FC<TreemapViewProps> = ({ onContextMenu }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
   const [hoveredNode, setHoveredNode] = useState<{ rect: TreemapRect; x: number; y: number } | null>(null);
@@ -130,6 +134,16 @@ export const TreemapView: React.FC = () => {
     }
   };
 
+  const handleContextMenu = (e: React.MouseEvent, node?: FileNode) => {
+    if (!node) return;
+    e.preventDefault();
+    e.stopPropagation();
+    selectNode(node);
+    if (onContextMenu) {
+      onContextMenu(e, node);
+    }
+  };
+
   const handleMouseMove = (e: React.MouseEvent, rect: TreemapRect) => {
     e.stopPropagation();
     if (!containerRef.current) return;
@@ -203,6 +217,7 @@ export const TreemapView: React.FC = () => {
           key={rect.id || index}
           className={`tree-dir-box ${filterClass} ${isSelected ? 'selected' : ''}`}
           onClick={(e) => handleNodeClick(e, rect.node)}
+          onContextMenu={(e) => handleContextMenu(e, rect.node)}
           onMouseMove={(e) => handleMouseMove(e, rect)}
         >
           <rect
@@ -232,6 +247,7 @@ export const TreemapView: React.FC = () => {
         key={rect.id || index}
         className={`tree-leaf-box ${filterClass} ${isSelected ? 'selected' : ''}`}
         onClick={(e) => handleNodeClick(e, rect.node)}
+        onContextMenu={(e) => handleContextMenu(e, rect.node)}
         onMouseMove={(e) => handleMouseMove(e, rect)}
       >
         <rect

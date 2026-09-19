@@ -122,3 +122,9 @@
   border-color: rgba(244, 63, 94, 0.4);
   color: #fda4af;
 }
+
+.table-btn.active-cleanup {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.4);
+}
+

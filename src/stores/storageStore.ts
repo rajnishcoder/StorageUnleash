@@ -29,6 +29,9 @@ export interface StorageState {
   searchQuery: string;
   devFilters: Record<string, boolean>;
 
+  // Cleanup List (Review & Batch Action Queue)
+  cleanupList: FileNode[];
+
   // Actions
   init: () => Promise<void>;
   startScan: (targetPath: string) => Promise<void>;
@@ -39,9 +42,14 @@ export interface StorageState {
   setViewMode: (mode: ViewMode) => void;
   setSearchQuery: (query: string) => void;
   toggleDevFilter: (filterKey: string) => void;
+  addToCleanupList: (node: FileNode) => void;
+  removeFromCleanupList: (path: string) => void;
+  toggleCleanupItem: (node: FileNode) => void;
+  clearCleanupList: () => void;
   resetToHome: () => void;
   rescan: () => Promise<void>;
   removePathFromTree: (deletedPath: string) => void;
+  removePathsFromTree: (deletedPaths: string[]) => void;
 }
 
 export const useStorageStore = create<StorageState>((set, get) => {
@@ -88,6 +96,7 @@ export const useStorageStore = create<StorageState>((set, get) => {
 
     searchQuery: '',
     devFilters: {},
+    cleanupList: [],
 
     init: async () => {
       if (typeof window !== 'undefined' && window.storageAPI) {
@@ -124,7 +133,8 @@ export const useStorageStore = create<StorageState>((set, get) => {
         },
         errorMessage: null,
         selectedNode: null,
-        searchQuery: ''
+        searchQuery: '',
+        cleanupList: []
       });
 
       if (typeof window !== 'undefined' && window.storageAPI) {
@@ -194,6 +204,32 @@ export const useStorageStore = create<StorageState>((set, get) => {
       });
     },
 
+    addToCleanupList: (node: FileNode) => {
+      const { cleanupList } = get();
+      if (!cleanupList.some((item) => item.path === node.path)) {
+        set({ cleanupList: [...cleanupList, node] });
+      }
+    },
+
+    removeFromCleanupList: (path: string) => {
+      const { cleanupList } = get();
+      set({ cleanupList: cleanupList.filter((item) => item.path !== path) });
+    },
+
+    toggleCleanupItem: (node: FileNode) => {
+      const { cleanupList } = get();
+      const exists = cleanupList.some((item) => item.path === node.path);
+      if (exists) {
+        set({ cleanupList: cleanupList.filter((item) => item.path !== node.path) });
+      } else {
+        set({ cleanupList: [...cleanupList, node] });
+      }
+    },
+
+    clearCleanupList: () => {
+      set({ cleanupList: [] });
+    },
+
     resetToHome: () => {
       set({
         scanStatus: 'idle',
@@ -203,7 +239,8 @@ export const useStorageStore = create<StorageState>((set, get) => {
         breadcrumbs: [],
         selectedNode: null,
         progress: null,
-        searchQuery: ''
+        searchQuery: '',
+        cleanupList: []
       });
     },
 
@@ -215,7 +252,7 @@ export const useStorageStore = create<StorageState>((set, get) => {
     },
 
     removePathFromTree: (deletedPath: string) => {
-      const { scanResult, currentDirectory } = get();
+      const { scanResult, currentDirectory, cleanupList } = get();
       if (!scanResult) return;
 
       function prune(node: FileNode): FileNode | null {
@@ -249,7 +286,50 @@ export const useStorageStore = create<StorageState>((set, get) => {
       set({
         scanResult: { ...scanResult, root: scanResult.root, totalSize: scanResult.root.size },
         currentDirectory: currentDirectory ? { ...currentDirectory } : null,
-        selectedNode: null
+        selectedNode: null,
+        cleanupList: cleanupList.filter((item) => item.path !== deletedPath)
+      });
+    },
+
+    removePathsFromTree: (deletedPaths: string[]) => {
+      const { scanResult, currentDirectory, cleanupList } = get();
+      if (!scanResult || deletedPaths.length === 0) return;
+
+      const pathSet = new Set(deletedPaths);
+
+      function prune(node: FileNode): FileNode | null {
+        if (pathSet.has(node.path)) return null;
+        if (node.children) {
+          const newChildren: FileNode[] = [];
+          let freedSize = 0;
+          let freedFiles = 0;
+
+          for (const child of node.children) {
+            const prunedChild = prune(child);
+            if (prunedChild) {
+              newChildren.push(prunedChild);
+            } else {
+              freedSize += child.size;
+              freedFiles += (child.fileCount || (child.type === 'file' ? 1 : 0));
+            }
+          }
+
+          node.children = newChildren;
+          node.size = Math.max(0, node.size - freedSize);
+          if (node.fileCount) {
+            node.fileCount = Math.max(0, node.fileCount - freedFiles);
+          }
+        }
+        return node;
+      }
+
+      prune(scanResult.root);
+
+      set({
+        scanResult: { ...scanResult, root: scanResult.root, totalSize: scanResult.root.size },
+        currentDirectory: currentDirectory ? { ...currentDirectory } : null,
+        selectedNode: null,
+        cleanupList: cleanupList.filter((item) => !pathSet.has(item.path))
       });
     }
   };
