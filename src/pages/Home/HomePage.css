@@ -57,8 +57,8 @@
   grid-template-columns: repeat(2, 1fr);
   gap: 20px;
   width: 100%;
-  max-width: 580px;
-  margin-bottom: 32px;
+  max-width: 620px;
+  margin-bottom: 28px;
 }
 
 .action-card {
@@ -183,6 +183,95 @@
 
 .reveal-btn:hover {
   background: rgba(255, 255, 255, 0.15);
+}
+
+.quick-locations-container {
+  width: 100%;
+  max-width: 620px;
+  margin-top: 8px;
+}
+
+.quick-locations-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  text-align: left;
+}
+
+.quick-locations-grid {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.quick-location-card {
+  flex: 1 1 0;
+  min-width: 85px;
+  max-width: 130px;
+  padding: 14px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  backdrop-filter: blur(8px);
+  position: relative;
+  overflow: hidden;
+}
+
+.quick-location-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent-primary), transparent);
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+}
+
+.quick-location-card:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-focus);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
+.quick-location-card:hover::before {
+  opacity: 1;
+}
+
+.quick-location-icon {
+  color: var(--accent-primary);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform var(--transition-fast);
+}
+
+.quick-location-card:hover .quick-location-icon {
+  transform: scale(1.12);
+}
+
+.quick-location-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .home-footer {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { FolderOpen, HardDrive, ShieldCheck, Sparkles, Home, Users, AppWindow, Download } from 'lucide-react';
+import { FolderOpen, HardDrive, ShieldCheck, Sparkles, Home, Users, AppWindow, Download, FileText } from 'lucide-react';
 import { useStorageStore } from '../../stores/storageStore';
 import './HomePage.css';
 
@@ -32,6 +32,8 @@ export const HomePage: React.FC = () => {
         return <AppWindow size={18} />;
       case 'downloads':
         return <Download size={18} />;
+      case 'documents':
+        return <FileText size={18} />;
       default:
         return <HardDrive size={18} />;
     }
@@ -77,23 +79,23 @@ export const HomePage: React.FC = () => {
       </div>
 
       {quickTargets.length > 0 && (
-        <div style={{ width: '100%', maxWidth: '580px', marginTop: '12px' }}>
-          <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+        <div className="quick-locations-container">
+          <div className="quick-locations-title">
             Quick Locations
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '10px' }}>
+          <div className="quick-locations-grid">
             {quickTargets.map((target) => (
               <button
                 key={target.id}
                 type="button"
-                className="action-card"
-                style={{ padding: '14px 10px' }}
+                className="quick-location-card"
                 onClick={() => startScan(target.path)}
+                title={target.path}
               >
-                <div style={{ color: 'var(--accent-primary)', marginBottom: '6px' }}>
+                <div className="quick-location-icon">
                   {getTargetIcon(target.iconType)}
                 </div>
-                <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>{target.name}</span>
+                <span className="quick-location-name">{target.name}</span>
               </button>
             ))}
           </div>
