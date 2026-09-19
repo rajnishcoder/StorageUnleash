@@ -79,23 +79,23 @@ export const HomePage: React.FC = () => {
       </div>
 
       {quickTargets.length > 0 && (
-        <div className="quick-locations-container">
-          <div className="quick-locations-title">
+        <div className="home-quick-locations-container">
+          <div className="home-quick-locations-title">
             Quick Locations
           </div>
-          <div className="quick-locations-grid">
+          <div className="home-quick-locations-row">
             {quickTargets.map((target) => (
               <button
                 key={target.id}
                 type="button"
-                className="quick-location-card"
+                className="home-quick-card"
                 onClick={() => startScan(target.path)}
                 title={target.path}
               >
-                <div className="quick-location-icon">
+                <div className="home-quick-icon">
                   {getTargetIcon(target.iconType)}
                 </div>
-                <span className="quick-location-name">{target.name}</span>
+                <span className="home-quick-name">{target.name}</span>
               </button>
             ))}
           </div>

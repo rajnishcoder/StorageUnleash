@@ -68,8 +68,7 @@ describe('StorageStore Cleanup List & Batch Actions', () => {
         totalSize: 3500,
         totalFiles: 2,
         totalDirectories: 1,
-        scanDurationMs: 50,
-        scannedPath: '/users/test',
+        durationMs: 50,
         errors: []
       },
       cleanupList: [dummyFile1, dummyFile2]

@@ -185,13 +185,13 @@
   background: rgba(255, 255, 255, 0.15);
 }
 
-.quick-locations-container {
+.home-quick-locations-container {
   width: 100%;
   max-width: 620px;
   margin-top: 8px;
 }
 
-.quick-locations-title {
+.home-quick-locations-title {
   font-size: 11px;
   font-weight: 600;
   color: var(--text-muted);
@@ -201,23 +201,24 @@
   text-align: left;
 }
 
-.quick-locations-grid {
-  display: flex;
+.home-quick-locations-row {
+  display: flex !important;
+  flex-direction: row !important;
   gap: 10px;
   width: 100%;
   justify-content: space-between;
-  flex-wrap: wrap;
+  align-items: stretch;
 }
 
-.quick-location-card {
+.home-quick-card {
   flex: 1 1 0;
-  min-width: 85px;
-  max-width: 130px;
+  min-width: 80px;
   padding: 14px 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
@@ -228,7 +229,7 @@
   overflow: hidden;
 }
 
-.quick-location-card::before {
+.home-quick-card::before {
   content: '';
   position: absolute;
   top: 0;
@@ -240,31 +241,30 @@
   transition: opacity var(--transition-normal);
 }
 
-.quick-location-card:hover {
+.home-quick-card:hover {
   background: var(--bg-card-hover);
   border-color: var(--border-focus);
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
 }
 
-.quick-location-card:hover::before {
+.home-quick-card:hover::before {
   opacity: 1;
 }
 
-.quick-location-icon {
+.home-quick-icon {
   color: var(--accent-primary);
-  margin-bottom: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: transform var(--transition-fast);
 }
 
-.quick-location-card:hover .quick-location-icon {
+.home-quick-card:hover .home-quick-icon {
   transform: scale(1.12);
 }
 
-.quick-location-name {
+.home-quick-name {
   font-size: 12px;
   font-weight: 600;
   color: var(--text-primary);

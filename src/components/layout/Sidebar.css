@@ -94,7 +94,7 @@
 }
 
 /* Quick Locations List */
-.quick-locations-grid {
+.sidebar-quick-list {
   display: flex;
   flex-direction: column;
   gap: 3px;

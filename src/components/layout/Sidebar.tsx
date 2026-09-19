@@ -137,7 +137,7 @@ export const Sidebar: React.FC = () => {
         {quickTargets.length > 0 && (
           <div>
             <div className="sidebar-section-heading">QUICK LOCATIONS</div>
-            <div className="quick-locations-grid">
+            <div className="sidebar-quick-list">
               {quickTargets.map((target) => {
                 const isActive = currentScanPath === target.path;
                 return (
