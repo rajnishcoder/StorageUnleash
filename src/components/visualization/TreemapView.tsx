@@ -347,24 +347,31 @@ export const TreemapView: React.FC<TreemapViewProps> = ({ onContextMenu }) => {
     );
   }
 
-  // Calculate sharp, pixel-aligned tooltip placement
+  // Calculate sharp, pixel-aligned tooltip placement (below-right of cursor)
   const getTooltipStyle = () => {
     if (!hoveredNode) return {};
     const tooltipW = 280;
-    const tooltipH = 80;
+    const tooltipH = 85;
+    const offset = 16;
+    const padding = 12;
 
-    const left = Math.round(
-      Math.min(dimensions.width - tooltipW - 12, Math.max(12, hoveredNode.x - tooltipW / 2))
-    );
+    // Default: Below and to the right of cursor
+    let left = hoveredNode.x + offset;
+    let top = hoveredNode.y + offset;
 
-    const top =
-      hoveredNode.y > tooltipH + 20
-        ? Math.round(hoveredNode.y - tooltipH - 12)
-        : Math.round(hoveredNode.y + 18);
+    // Flip to left if overflowing right edge
+    if (left + tooltipW > dimensions.width - padding) {
+      left = Math.max(padding, hoveredNode.x - tooltipW - offset);
+    }
+
+    // Flip to above if overflowing bottom edge
+    if (top + tooltipH > dimensions.height - padding) {
+      top = Math.max(padding, hoveredNode.y - tooltipH - offset);
+    }
 
     return {
-      left: `${left}px`,
-      top: `${top}px`
+      left: `${Math.round(left)}px`,
+      top: `${Math.round(top)}px`
     };
   };
 
