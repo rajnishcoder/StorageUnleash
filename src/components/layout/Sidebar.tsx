@@ -42,12 +42,12 @@ const DEV_BLOAT_ITEMS = [
 ];
 
 const FILE_TYPE_LEGEND = [
-  { label: 'Video', color: '#f43f5e' },
-  { label: 'Image', color: '#f97316' },
-  { label: 'Doc', color: '#3b82f6' },
-  { label: 'Dev', color: '#10b981' },
-  { label: 'Archive', color: '#eab308' },
-  { label: 'Other', color: '#64748b' }
+  { label: 'Video', color: '#e11d48' },
+  { label: 'Image', color: '#db2777' },
+  { label: 'Doc', color: '#2563eb' },
+  { label: 'Dev', color: '#059669' },
+  { label: 'Archive', color: '#c2410c' },
+  { label: 'Other', color: '#475569' }
 ];
 
 export const Sidebar: React.FC = () => {

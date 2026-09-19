@@ -40,6 +40,52 @@ const BRANCH_LEAF_COLORS = [
   '#0ea5e9'  // Sky
 ];
 
+function adjustColorShade(hex: string, index: number): string {
+  let c = hex.replace('#', '');
+  if (c.length === 3) {
+    c = c.split('').map((ch) => ch + ch).join('');
+  }
+  let r = parseInt(c.substring(0, 2), 16) || 0;
+  let g = parseInt(c.substring(2, 4), 16) || 0;
+  let b = parseInt(c.substring(4, 6), 16) || 0;
+
+  const variations = [0, -14, 10, -22, 16, -8];
+  const delta = variations[index % variations.length];
+
+  r = Math.min(255, Math.max(0, Math.round(r + delta)));
+  g = Math.min(255, Math.max(0, Math.round(g + delta)));
+  b = Math.min(255, Math.max(0, Math.round(b + delta)));
+
+  const toHex = (n: number) => n.toString(16).padStart(2, '0');
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
+function getTextColorForBg(hex: string): { text: string; subtext: string; textShadow?: string } {
+  let c = hex.replace('#', '');
+  if (c.length === 3) {
+    c = c.split('').map((ch) => ch + ch).join('');
+  }
+  const r = parseInt(c.substring(0, 2), 16) || 0;
+  const g = parseInt(c.substring(2, 4), 16) || 0;
+  const b = parseInt(c.substring(4, 6), 16) || 0;
+
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+
+  if (luminance > 0.52) {
+    return {
+      text: '#0f172a',
+      subtext: 'rgba(15, 23, 42, 0.75)',
+      textShadow: 'none'
+    };
+  } else {
+    return {
+      text: '#ffffff',
+      subtext: 'rgba(255, 255, 255, 0.8)',
+      textShadow: '0 1px 2px rgba(0, 0, 0, 0.6)'
+    };
+  }
+}
+
 interface TreemapViewProps {
   onContextMenu?: (e: React.MouseEvent, node: FileNode) => void;
 }
@@ -115,13 +161,14 @@ export const TreemapView: React.FC<TreemapViewProps> = ({ onContextMenu }) => {
     if (rect.node?.extension) {
       const cat = categorizeFile(rect.node.extension);
       if (cat !== 'other') {
-        return CATEGORY_COLORS[cat];
+        const baseColor = CATEGORY_COLORS[cat];
+        return adjustColorShade(baseColor, index);
       }
     }
 
     // Assign rich colorful tone based on branch and index
     const colorIdx = (rect.colorIndex + index) % BRANCH_LEAF_COLORS.length;
-    return BRANCH_LEAF_COLORS[colorIdx];
+    return adjustColorShade(BRANCH_LEAF_COLORS[colorIdx], index);
   };
 
   const handleNodeClick = (e: React.MouseEvent, node?: FileNode) => {
@@ -239,6 +286,7 @@ export const TreemapView: React.FC<TreemapViewProps> = ({ onContextMenu }) => {
 
     // Leaf file tile
     const leafFill = getLeafColor(rect, index);
+    const theme = getTextColorForBg(leafFill);
     const showText = rect.width >= 35 && rect.height >= 20;
     const showSize = rect.width >= 55 && rect.height >= 35;
 
@@ -260,7 +308,13 @@ export const TreemapView: React.FC<TreemapViewProps> = ({ onContextMenu }) => {
         />
 
         {showText && (
-          <text className="leaf-text" x={rect.x + 5} y={rect.y + 13}>
+          <text
+            className="leaf-text"
+            x={rect.x + 5}
+            y={rect.y + 13}
+            fill={theme.text}
+            style={{ textShadow: theme.textShadow }}
+          >
             {rect.name.length > 14 && rect.width < 90
               ? rect.name.substring(0, 11) + '..'
               : rect.name}
@@ -268,7 +322,13 @@ export const TreemapView: React.FC<TreemapViewProps> = ({ onContextMenu }) => {
         )}
 
         {showSize && (
-          <text className="leaf-size" x={rect.x + 5} y={rect.y + 26}>
+          <text
+            className="leaf-size"
+            x={rect.x + 5}
+            y={rect.y + 26}
+            fill={theme.subtext}
+            style={{ textShadow: theme.textShadow }}
+          >
             {formatBytes(rect.size, 1)}
           </text>
         )}
