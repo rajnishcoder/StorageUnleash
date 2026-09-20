@@ -44,11 +44,11 @@ describe('formatDuration', () => {
 
 describe('truncatePath', () => {
   it('leaves short paths untouched', () => {
-    expect(truncatePath('/Users/rajnish/Documents', 50)).toBe('/Users/rajnish/Documents');
+    expect(truncatePath('/Users/developer/Documents', 50)).toBe('/Users/developer/Documents');
   });
 
   it('shortens long paths with ellipsis', () => {
-    const longPath = '/Users/rajnish/Documents/VeryLongDirectoryName/NestedFolder/AnotherDeepFolder/Target';
+    const longPath = '/Users/developer/Documents/VeryLongDirectoryName/NestedFolder/AnotherDeepFolder/Target';
     const truncated = truncatePath(longPath, 40);
     expect(truncated).toContain('...');
     expect(truncated.startsWith('/Users')).toBe(true);

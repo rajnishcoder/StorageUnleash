@@ -7,7 +7,7 @@ describe('isNodeHighlighted', () => {
     const node: FileNode = {
       id: '1',
       name: 'node_modules',
-      path: '/Users/rajnish/projects/node_modules',
+      path: '/Users/developer/projects/node_modules',
       type: 'directory',
       size: 50000
     };
@@ -20,7 +20,7 @@ describe('isNodeHighlighted', () => {
     const dmgFile: FileNode = {
       id: '2',
       name: 'Cursor-mac.dmg',
-      path: '/Users/rajnish/Downloads/Cursor-mac.dmg',
+      path: '/Users/developer/Downloads/Cursor-mac.dmg',
       type: 'file',
       extension: 'dmg',
       size: 150000000
@@ -34,7 +34,7 @@ describe('isNodeHighlighted', () => {
     const cacheDir: FileNode = {
       id: '3',
       name: 'Caches',
-      path: '/Users/rajnish/Library/Caches',
+      path: '/Users/developer/Library/Caches',
       type: 'directory',
       size: 5000000000
     };
@@ -46,7 +46,7 @@ describe('isNodeHighlighted', () => {
     const ollamaDir: FileNode = {
       id: 'ai-1',
       name: '.ollama',
-      path: '/Users/rajnish/.ollama',
+      path: '/Users/developer/.ollama',
       type: 'directory',
       size: 18000000000
     };
@@ -59,7 +59,7 @@ describe('isNodeHighlighted', () => {
     const photoFile: FileNode = {
       id: 'p-1',
       name: 'DSC_001.CR2',
-      path: '/Users/rajnish/Pictures/DSC_001.CR2',
+      path: '/Users/developer/Pictures/DSC_001.CR2',
       type: 'file',
       extension: 'cr2',
       size: 35000000
@@ -73,7 +73,7 @@ describe('isNodeHighlighted', () => {
     const chromeCache: FileNode = {
       id: 'b-1',
       name: 'Chrome',
-      path: '/Users/rajnish/Library/Caches/Google/Chrome',
+      path: '/Users/developer/Library/Caches/Google/Chrome',
       type: 'directory',
       size: 4500000000
     };
@@ -85,8 +85,8 @@ describe('isNodeHighlighted', () => {
   it('identifies documents when documents filter is active', () => {
     const docFile: FileNode = {
       id: 'd-1',
-      name: 'Tax_Return_2025.pdf',
-      path: '/Users/rajnish/Documents/Tax_Return_2025.pdf',
+      name: 'Annual_Report_2025.pdf',
+      path: '/Users/developer/Documents/Annual_Report_2025.pdf',
       type: 'file',
       extension: 'pdf',
       size: 5000000
@@ -100,7 +100,7 @@ describe('isNodeHighlighted', () => {
     const file: FileNode = {
       id: '4',
       name: 'StorageUnleash',
-      path: '/Users/rajnish/projects/StorageUnleash',
+      path: '/Users/developer/projects/StorageUnleash',
       type: 'directory',
       size: 1000
     };
@@ -116,14 +116,14 @@ describe('calculateSmartFilterStats', () => {
     const root: FileNode = {
       id: 'root',
       name: 'Home',
-      path: '/Users/rajnish',
+      path: '/Users/developer',
       type: 'directory',
       size: 20000000000,
       children: [
         {
           id: 'c1',
           name: '.ollama',
-          path: '/Users/rajnish/.ollama',
+          path: '/Users/developer/.ollama',
           type: 'directory',
           size: 18000000000,
           fileCount: 4
@@ -131,7 +131,7 @@ describe('calculateSmartFilterStats', () => {
         {
           id: 'c2',
           name: 'node_modules',
-          path: '/Users/rajnish/project/node_modules',
+          path: '/Users/developer/project/node_modules',
           type: 'directory',
           size: 1500000000,
           fileCount: 12000
@@ -139,7 +139,7 @@ describe('calculateSmartFilterStats', () => {
         {
           id: 'c3',
           name: 'installer.dmg',
-          path: '/Users/rajnish/Downloads/installer.dmg',
+          path: '/Users/developer/Downloads/installer.dmg',
           type: 'file',
           extension: 'dmg',
           size: 500000000
@@ -165,7 +165,7 @@ describe('calculateSmartFilterStats', () => {
         subChildren.push({
           id: `file-${i}-${j}`,
           name: `photo_${i}_${j}.jpg`,
-          path: `/Users/rajnish/Pictures/photo_${i}_${j}.jpg`,
+          path: `/Users/developer/Pictures/photo_${i}_${j}.jpg`,
           type: 'file',
           extension: 'jpg',
           size: 1024 * 1024
@@ -174,7 +174,7 @@ describe('calculateSmartFilterStats', () => {
       children.push({
         id: `dir-${i}`,
         name: `folder_${i}`,
-        path: `/Users/rajnish/Pictures/folder_${i}`,
+        path: `/Users/developer/Pictures/folder_${i}`,
         type: 'directory',
         size: 100 * 1024 * 1024,
         fileCount: 100,
@@ -185,7 +185,7 @@ describe('calculateSmartFilterStats', () => {
     const largeRoot: FileNode = {
       id: 'root-large',
       name: 'Pictures',
-      path: '/Users/rajnish/Pictures',
+      path: '/Users/developer/Pictures',
       type: 'directory',
       size: 1000 * 100 * 1024 * 1024,
       fileCount: 100000,

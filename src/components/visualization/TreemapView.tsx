@@ -126,7 +126,7 @@ export const TreemapView: React.FC<TreemapViewProps> = ({ onContextMenu }) => {
       return [];
     }
 
-    // If current directory has only 1 child directory (e.g. Users -> rajnishkumar), unwrap it for full-screen density
+    // If current directory has only 1 child directory (e.g. Users -> username), unwrap it for full-screen density
     let rootToRender = currentDirectory;
     if (
       rootToRender.children &&
