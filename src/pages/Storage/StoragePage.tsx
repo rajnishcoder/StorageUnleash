@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useStorageStore } from '../../stores/storageStore';
 import { Breadcrumbs } from '../../components/storage/Breadcrumbs';
 import { TreemapView } from '../../components/visualization/TreemapView';
-import { SunburstView } from '../../components/visualization/SunburstView';
 import { LargestFilesView } from '../../components/storage/LargestFilesView';
 import { ConfirmModal } from '../../components/common/ConfirmModal';
 import { ContextMenu } from '../../components/common/ContextMenu';
@@ -101,18 +100,13 @@ export const StoragePage: React.FC = () => {
 
       <div className="storage-content-layout">
         <div className="storage-main-view">
-          {viewMode === 'treemap' ? (
-            <TreemapView onContextMenu={handleContextMenu} />
-          ) : viewMode === 'sunburst' ? (
-            <SunburstView
-              onContextMenu={handleContextMenu}
-              onOpenCleanupModal={() => setIsCleanupModalOpen(true)}
-            />
-          ) : (
+          {viewMode === 'list' ? (
             <LargestFilesView
               onTrashRequest={(node) => setTrashCandidate(node)}
               onContextMenu={handleContextMenu}
             />
+          ) : (
+            <TreemapView onContextMenu={handleContextMenu} />
           )}
         </div>
 
