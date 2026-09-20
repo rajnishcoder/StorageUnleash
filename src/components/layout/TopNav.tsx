@@ -47,6 +47,13 @@ export const TopNav: React.FC = () => {
           </button>
           <button
             type="button"
+            className={`nav-view-btn ${viewMode === 'sunburst' ? 'active' : ''}`}
+            onClick={() => setViewMode('sunburst')}
+          >
+            Sunburst
+          </button>
+          <button
+            type="button"
             className={`nav-view-btn ${viewMode === 'list' ? 'active' : ''}`}
             onClick={() => setViewMode('list')}
           >

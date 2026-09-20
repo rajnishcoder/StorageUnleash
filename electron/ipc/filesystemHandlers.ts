@@ -2,7 +2,7 @@ import { dialog, shell, ipcMain, BrowserWindow } from 'electron';
 import { IPC_CHANNELS } from '@shared/types/ipc';
 import { FilesystemScanner } from '../filesystem/scanner';
 import { getSystemQuickTargets } from '../filesystem/quickTargets';
-import { moveToTrash } from '../filesystem/trash';
+import { moveToTrash, emptyTrash, openTrash } from '../filesystem/trash';
 import { getDiskSpace, getTrashInfo } from '../filesystem/diskSpace';
 import type { ScanProgress } from '@shared/models/fileNode';
 
@@ -20,6 +20,16 @@ export function registerFilesystemHandlers(mainWindow: BrowserWindow): void {
   // Get Trash info
   ipcMain.handle(IPC_CHANNELS.GET_TRASH_INFO, async () => {
     return await getTrashInfo();
+  });
+
+  // Empty Trash
+  ipcMain.handle(IPC_CHANNELS.EMPTY_TRASH, async () => {
+    return await emptyTrash();
+  });
+
+  // Open / Reveal Trash
+  ipcMain.handle(IPC_CHANNELS.OPEN_TRASH, async () => {
+    await openTrash();
   });
 
   // Get Quick Targets (Home, Users, Applications, Downloads, etc.)

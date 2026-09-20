@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { execFile } from 'node:child_process';
 import type { DiskSpaceInfo, TrashInfo } from '@shared/types/ipc';
 
 /**
@@ -46,15 +47,79 @@ export async function getDiskSpace(): Promise<DiskSpaceInfo> {
 }
 
 /**
- * Counts items in user's OS trash.
+ * Counts items and calculates total size in user's OS trash.
+ * On macOS, queries Finder via AppleScript to bypass TCC scandir restrictions on ~/.Trash.
+ * On Windows, queries Shell.Application RecycleBin.
  */
 export async function getTrashInfo(): Promise<TrashInfo> {
-  let trashPath = '';
   if (process.platform === 'darwin') {
-    trashPath = path.join(os.homedir(), '.Trash');
+    return new Promise((resolve) => {
+      const script = `tell application "Finder"
+        try
+          set trashItems to every item of trash
+          set cnt to count of trashItems
+          set s to 0
+          repeat with i in trashItems
+            try
+              set s to (s + (size of i)) as integer
+            end try
+          end repeat
+          return "" & cnt & ":" & s
+        on error
+          return "0:0"
+        end try
+      end tell`;
+
+      execFile('osascript', ['-e', script], { timeout: 4000 }, (err, stdout) => {
+        if (err) {
+          // Fallback to fast count only if detailed loop timed out or errored
+          execFile(
+            'osascript',
+            ['-e', 'tell application "Finder" to count every item of trash'],
+            { timeout: 2000 },
+            (countErr, countOut) => {
+              if (countErr) {
+                return resolve({ itemCount: 0, totalSize: 0 });
+              }
+              const cnt = parseInt((countOut || '').trim(), 10) || 0;
+              return resolve({ itemCount: cnt, totalSize: 0 });
+            }
+          );
+          return;
+        }
+
+        const out = (stdout || '').trim();
+        const [cntStr, sizeStr] = out.split(':');
+        const count = parseInt(cntStr || '0', 10) || 0;
+        const size = Math.round(Number(sizeStr || '0')) || 0;
+        resolve({ itemCount: count, totalSize: size });
+      });
+    });
   }
 
-  if (trashPath && fs.existsSync(trashPath)) {
+  if (process.platform === 'win32') {
+    return new Promise((resolve) => {
+      const psCommand = `
+        $shell = New-Object -ComObject Shell.Application
+        $bin = $shell.Namespace(0xA)
+        $count = $bin.Items().Count
+        $size = 0
+        foreach ($item in $bin.Items()) { $size += $item.Size }
+        "$count:$size"
+      `;
+      execFile('powershell', ['-NoProfile', '-Command', psCommand], { timeout: 4000 }, (err, stdout) => {
+        if (err) return resolve({ itemCount: 0, totalSize: 0 });
+        const [cntStr, sizeStr] = (stdout || '').trim().split(':');
+        const count = parseInt(cntStr || '0', 10) || 0;
+        const size = parseInt(sizeStr || '0', 10) || 0;
+        resolve({ itemCount: count, totalSize: size });
+      });
+    });
+  }
+
+  // Linux / POSIX fallback
+  const trashPath = path.join(os.homedir(), '.local/share/Trash/files');
+  if (fs.existsSync(trashPath)) {
     try {
       const entries = await fs.promises.readdir(trashPath);
       let totalSize = 0;
@@ -62,14 +127,9 @@ export async function getTrashInfo(): Promise<TrashInfo> {
         try {
           const s = await fs.promises.stat(path.join(trashPath, item));
           totalSize += s.size;
-        } catch {
-          // Ignore individual unreadable trash items
-        }
+        } catch {}
       }
-      return {
-        itemCount: entries.length,
-        totalSize
-      };
+      return { itemCount: entries.length, totalSize };
     } catch {
       return { itemCount: 0, totalSize: 0 };
     }

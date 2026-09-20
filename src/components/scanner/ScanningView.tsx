@@ -12,15 +12,24 @@ export const ScanningView: React.FC = () => {
   const bytesCount = progress?.bytesProcessed || 0;
   const currentItemPath = progress?.currentPath || currentScanPath || 'Starting scan...';
 
+  const isFinalizing =
+    progress?.percentage === 100 ||
+    currentItemPath.includes('Finalizing') ||
+    currentItemPath === 'Scan completed';
+
   return (
     <div className="scanning-container">
-      <div className="scanning-pulse">
+      <div className={`scanning-pulse ${isFinalizing ? 'finalizing' : ''}`}>
         <FolderSearch size={36} />
       </div>
 
-      <h2 className="scanning-title">Analyzing Storage</h2>
+      <h2 className="scanning-title">
+        {isFinalizing ? 'Finalizing Storage Map' : 'Analyzing Storage'}
+      </h2>
       <p className="scanning-subtitle">
-        Building filesystem tree and computing folder sizes...
+        {isFinalizing
+          ? 'Calculating smart categories & preparing treemap visualization...'
+          : 'Building filesystem tree and computing folder sizes...'}
       </p>
 
       <div className="scanning-stats-grid">
@@ -42,13 +51,15 @@ export const ScanningView: React.FC = () => {
         {truncatePath(currentItemPath, 70)}
       </div>
 
-      <button
-        type="button"
-        className="scanning-cancel-btn"
-        onClick={cancelScan}
-      >
-        Cancel Scan
-      </button>
+      {!isFinalizing && (
+        <button
+          type="button"
+          className="scanning-cancel-btn"
+          onClick={cancelScan}
+        >
+          Cancel Scan
+        </button>
+      )}
     </div>
   );
 };

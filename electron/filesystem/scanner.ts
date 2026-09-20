@@ -41,7 +41,7 @@ export class FilesystemScanner {
         filesScanned: this.filesScanned,
         directoriesScanned: this.directoriesScanned,
         bytesProcessed: this.bytesProcessed,
-        currentPath: 'Scan completed',
+        currentPath: 'Finalizing filesystem map...',
         percentage: 100
       });
     }
@@ -88,19 +88,6 @@ export class FilesystemScanner {
 
     if (this.isCancelled) return node;
 
-    // Check symlink recursion / realpath
-    try {
-      const real = await fs.promises.realpath(dirPath);
-      if (this.visitedRealPaths.has(real)) {
-        // Detected symlink cycle or already visited real path
-        return node;
-      }
-      this.visitedRealPaths.add(real);
-    } catch (err: any) {
-      // If realpath fails (e.g. permission or special file), record non-fatal error
-      this.recordError(dirPath, err);
-    }
-
     let entries: fs.Dirent[] = [];
     try {
       entries = await fs.promises.readdir(dirPath, { withFileTypes: true });
@@ -114,79 +101,109 @@ export class FilesystemScanner {
     let totalDirectoryCount = 0;
     const childrenNodes: FileNode[] = [];
 
-    for (const entry of entries) {
-      if (this.isCancelled) break;
+    const fileEntries: fs.Dirent[] = [];
+    const dirEntries: fs.Dirent[] = [];
+    const symlinkEntries: fs.Dirent[] = [];
 
-      const fullPath = path.join(dirPath, entry.name);
-
-      if (entry.isDirectory()) {
-        const childDirNode = await this.scanDirectory(fullPath, entry.name);
-        childrenNodes.push(childDirNode);
-        totalDirSize += childDirNode.size;
-        totalFileCount += childDirNode.fileCount || 0;
-        totalDirectoryCount += 1 + (childDirNode.directoryCount || 0);
+    for (let i = 0; i < entries.length; i++) {
+      const entry = entries[i];
+      if (entry.isFile()) {
+        fileEntries.push(entry);
+      } else if (entry.isDirectory()) {
+        dirEntries.push(entry);
       } else if (entry.isSymbolicLink()) {
-        try {
-          const stats = await fs.promises.stat(fullPath);
-          if (stats.isDirectory()) {
-            // Avoid traversing arbitrary directory symlinks to prevent duplicate accounting
-            const linkNode: FileNode = {
-              id: fullPath,
-              name: entry.name,
-              path: fullPath,
-              type: 'directory',
-              size: stats.size || 0,
-              fileCount: 0,
-              directoryCount: 0
-            };
-            childrenNodes.push(linkNode);
-            totalDirSize += linkNode.size;
-            totalDirectoryCount += 1;
-          } else {
+        symlinkEntries.push(entry);
+      }
+    }
+
+    // Process files in concurrent batches of 64
+    const BATCH_SIZE = 64;
+    for (let i = 0; i < fileEntries.length; i += BATCH_SIZE) {
+      if (this.isCancelled) break;
+      const batch = fileEntries.slice(i, i + BATCH_SIZE);
+
+      await Promise.all(
+        batch.map(async (entry) => {
+          const fullPath = path.join(dirPath, entry.name);
+          try {
+            const stats = await fs.promises.stat(fullPath);
             const ext = path.extname(entry.name).replace(/^\./, '').toLowerCase();
-            const linkFileNode: FileNode = {
+            const fileNode: FileNode = {
               id: fullPath,
               name: entry.name,
               path: fullPath,
               type: 'file',
-              size: stats.size || 0,
+              size: stats.size,
               extension: ext,
               modifiedAt: stats.mtimeMs
             };
-            childrenNodes.push(linkFileNode);
-            totalDirSize += linkFileNode.size;
+
+            childrenNodes.push(fileNode);
+            totalDirSize += stats.size;
             totalFileCount += 1;
             this.filesScanned++;
-            this.bytesProcessed += stats.size || 0;
+            this.bytesProcessed += stats.size;
+          } catch (err: any) {
+            this.recordError(fullPath, err);
           }
-        } catch (err: any) {
-          // Broken symlink
-          this.recordError(fullPath, err);
-        }
-      } else if (entry.isFile()) {
-        try {
-          const stats = await fs.promises.stat(fullPath);
+        })
+      );
+
+      this.emitProgress();
+    }
+
+    // Process symlinks
+    for (const entry of symlinkEntries) {
+      if (this.isCancelled) break;
+      const fullPath = path.join(dirPath, entry.name);
+
+      try {
+        const stats = await fs.promises.stat(fullPath);
+        if (stats.isDirectory()) {
+          // Avoid traversing arbitrary directory symlinks to prevent duplicate accounting & loops
+          const linkNode: FileNode = {
+            id: fullPath,
+            name: entry.name,
+            path: fullPath,
+            type: 'directory',
+            size: stats.size || 0,
+            fileCount: 0,
+            directoryCount: 0
+          };
+          childrenNodes.push(linkNode);
+          totalDirSize += linkNode.size;
+          totalDirectoryCount += 1;
+        } else {
           const ext = path.extname(entry.name).replace(/^\./, '').toLowerCase();
-          const fileNode: FileNode = {
+          const linkFileNode: FileNode = {
             id: fullPath,
             name: entry.name,
             path: fullPath,
             type: 'file',
-            size: stats.size,
+            size: stats.size || 0,
             extension: ext,
             modifiedAt: stats.mtimeMs
           };
-
-          childrenNodes.push(fileNode);
-          totalDirSize += stats.size;
+          childrenNodes.push(linkFileNode);
+          totalDirSize += linkFileNode.size;
           totalFileCount += 1;
           this.filesScanned++;
-          this.bytesProcessed += stats.size;
-          this.emitProgress();
-        } catch (err: any) {
-          this.recordError(fullPath, err);
+          this.bytesProcessed += stats.size || 0;
         }
+      } catch (err: any) {
+        this.recordError(fullPath, err);
       }
+    }
+
+    // Recurse on subdirectories
+    for (const entry of dirEntries) {
+      if (this.isCancelled) break;
+      const fullPath = path.join(dirPath, entry.name);
+      const childDirNode = await this.scanDirectory(fullPath, entry.name);
+      childrenNodes.push(childDirNode);
+      totalDirSize += childDirNode.size;
+      totalFileCount += childDirNode.fileCount || 0;
+      totalDirectoryCount += 1 + (childDirNode.directoryCount || 0);
     }
 
     // Sort children descending by size

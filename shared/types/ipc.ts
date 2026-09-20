@@ -31,6 +31,7 @@ export const IPC_CHANNELS = {
   SELECT_FOLDER: 'storage:select-folder',
   GET_TRASH_INFO: 'storage:get-trash-info',
   EMPTY_TRASH: 'storage:empty-trash',
+  OPEN_TRASH: 'storage:open-trash',
   
   // Scanning operations
   START_SCAN: 'storage:start-scan',
@@ -59,6 +60,7 @@ export interface StorageAPI {
   getQuickTargets(): Promise<QuickTarget[]>;
   getTrashInfo(): Promise<TrashInfo>;
   emptyTrash(): Promise<boolean>;
+  openTrash(): Promise<void>;
   selectFolder(): Promise<string | null>;
   startScan(path: string): Promise<void>;
   cancelScan(): Promise<void>;

@@ -3,7 +3,7 @@ import type { FileNode, ScanProgress, ScanResult, ScanError } from '@shared/mode
 import type { QuickTarget, DiskSpaceInfo, TrashInfo } from '@shared/types/ipc';
 
 export type ScanStatus = 'idle' | 'scanning' | 'completed' | 'cancelled' | 'error';
-export type ViewMode = 'treemap' | 'list';
+export type ViewMode = 'treemap' | 'sunburst' | 'list';
 
 export interface StorageState {
   // Navigation & Scan State
@@ -50,6 +50,9 @@ export interface StorageState {
   rescan: () => Promise<void>;
   removePathFromTree: (deletedPath: string) => void;
   removePathsFromTree: (deletedPaths: string[]) => void;
+  refreshTrashInfo: () => Promise<void>;
+  emptyTrash: () => Promise<boolean>;
+  openTrash: () => Promise<void>;
 }
 
 export const useStorageStore = create<StorageState>((set, get) => {
@@ -289,6 +292,12 @@ export const useStorageStore = create<StorageState>((set, get) => {
         selectedNode: null,
         cleanupList: cleanupList.filter((item) => item.path !== deletedPath)
       });
+
+      // Update live trash stats and disk space
+      get().refreshTrashInfo();
+      if (typeof window !== 'undefined' && window.storageAPI) {
+        window.storageAPI.getDiskSpace().then((disk) => set({ diskSpace: disk })).catch(() => {});
+      }
     },
 
     removePathsFromTree: (deletedPaths: string[]) => {
@@ -331,6 +340,52 @@ export const useStorageStore = create<StorageState>((set, get) => {
         selectedNode: null,
         cleanupList: cleanupList.filter((item) => !pathSet.has(item.path))
       });
+
+      // Update live trash stats and disk space
+      get().refreshTrashInfo();
+      if (typeof window !== 'undefined' && window.storageAPI) {
+        window.storageAPI.getDiskSpace().then((disk) => set({ diskSpace: disk })).catch(() => {});
+      }
+    },
+
+    refreshTrashInfo: async () => {
+      if (typeof window !== 'undefined' && window.storageAPI) {
+        try {
+          const trash = await window.storageAPI.getTrashInfo();
+          set({ trashInfo: trash });
+        } catch (err) {
+          console.error('Failed to refresh trash info:', err);
+        }
+      }
+    },
+
+    emptyTrash: async () => {
+      if (typeof window !== 'undefined' && window.storageAPI) {
+        try {
+          const success = await window.storageAPI.emptyTrash();
+          if (success) {
+            const [trash, disk] = await Promise.all([
+              window.storageAPI.getTrashInfo(),
+              window.storageAPI.getDiskSpace()
+            ]);
+            set({ trashInfo: trash, diskSpace: disk });
+            return true;
+          }
+        } catch (err) {
+          console.error('Failed to empty trash:', err);
+        }
+      }
+      return false;
+    },
+
+    openTrash: async () => {
+      if (typeof window !== 'undefined' && window.storageAPI) {
+        try {
+          await window.storageAPI.openTrash();
+        } catch (err) {
+          console.error('Failed to open trash:', err);
+        }
+      }
     }
   };
 });

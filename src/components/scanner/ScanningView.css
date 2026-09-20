@@ -26,6 +26,12 @@
   animation: pulse-ring 2s infinite ease-in-out;
 }
 
+.scanning-pulse.finalizing {
+  color: #34d399;
+  background: radial-gradient(circle, rgba(52, 211, 153, 0.3) 0%, rgba(52, 211, 153, 0.05) 70%, transparent 100%);
+  box-shadow: 0 0 35px rgba(52, 211, 153, 0.4);
+}
+
 @keyframes pulse-ring {
   0% {
     transform: scale(0.95);

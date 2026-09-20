@@ -230,11 +230,18 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
+  padding: 7px 10px;
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 8px;
   font-size: 12px;
+  gap: 8px;
+  transition: all var(--transition-fast);
+}
+
+.trash-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 .trash-left {
@@ -242,18 +249,66 @@
   align-items: center;
   gap: 8px;
   color: #cbd5e1;
+  cursor: pointer;
+  min-width: 0;
+  transition: color var(--transition-fast);
 }
 
-.trash-badge {
+.trash-left:hover {
+  color: #ffffff;
+}
+
+.trash-text-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.trash-title {
+  font-weight: 500;
+  color: #f1f5f9;
+}
+
+.trash-count-badge {
   color: #f59e0b;
-  font-weight: 600;
-}
-
-.trash-action {
-  color: #f43f5e;
   font-size: 11px;
   font-weight: 600;
+}
+
+.trash-right-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.trash-size-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.trash-action-btn {
+  background: rgba(244, 63, 94, 0.1);
+  border: 1px solid rgba(244, 63, 94, 0.25);
+  color: #fb7185;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
   cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.trash-action-btn:hover {
+  background: rgba(244, 63, 94, 0.22);
+  border-color: rgba(244, 63, 94, 0.45);
+  color: #ffffff;
 }
 
 /* Dev Bloat Checklist */
@@ -335,6 +390,30 @@
 
 .filter-item.zero-stat:hover {
   opacity: 0.9;
+}
+
+.btn-toggle-filters {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 5px 8px;
+  margin-top: 4px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-toggle-filters:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(56, 189, 248, 0.3);
+  color: #38bdf8;
 }
 
 /* File Types Legend */

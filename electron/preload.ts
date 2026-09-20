@@ -15,8 +15,12 @@ const storageAPI: StorageAPI = {
     return ipcRenderer.invoke(IPC_CHANNELS.GET_TRASH_INFO);
   },
 
-  emptyTrash: async (): Promise<boolean> => {
-    return true;
+  emptyTrash: (): Promise<boolean> => {
+    return ipcRenderer.invoke(IPC_CHANNELS.EMPTY_TRASH);
+  },
+
+  openTrash: (): Promise<void> => {
+    return ipcRenderer.invoke(IPC_CHANNELS.OPEN_TRASH);
   },
 
   selectFolder: (): Promise<string | null> => {
