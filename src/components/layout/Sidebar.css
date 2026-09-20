@@ -230,9 +230,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 7px 10px;
+  padding: 8px 10px;
   background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 8px;
   font-size: 12px;
   gap: 8px;
@@ -240,8 +240,8 @@
 }
 
 .trash-row:hover {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .trash-left {
@@ -251,64 +251,85 @@
   color: #cbd5e1;
   cursor: pointer;
   min-width: 0;
+  flex: 1;
   transition: color var(--transition-fast);
 }
 
-.trash-left:hover {
-  color: #ffffff;
+.trash-left:hover .trash-title {
+  color: #38bdf8;
+}
+
+.trash-icon-wrap {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: rgba(245, 158, 11, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .trash-text-group {
   display: flex;
-  align-items: center;
-  gap: 6px;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
 }
 
-.trash-title {
-  font-weight: 500;
-  color: #f1f5f9;
-}
-
-.trash-count-badge {
-  color: #f59e0b;
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.trash-right-group {
+.trash-title-line {
   display: flex;
   align-items: center;
   gap: 6px;
-  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.trash-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #f1f5f9;
+  white-space: nowrap;
+  transition: color var(--transition-fast);
+}
+
+.trash-subtitle {
+  font-size: 11px;
+  color: #94a3b8;
+  white-space: nowrap;
 }
 
 .trash-size-badge {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   color: #f59e0b;
-  background: rgba(245, 158, 11, 0.12);
-  border: 1px solid rgba(245, 158, 11, 0.25);
-  padding: 1px 6px;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  padding: 0px 5px;
   border-radius: 4px;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .trash-action-btn {
-  background: rgba(244, 63, 94, 0.1);
-  border: 1px solid rgba(244, 63, 94, 0.25);
+  background: rgba(244, 63, 94, 0.12);
+  border: 1px solid rgba(244, 63, 94, 0.3);
   color: #fb7185;
   font-size: 11px;
   font-weight: 600;
-  padding: 2px 7px;
-  border-radius: 4px;
+  padding: 4px 9px;
+  border-radius: 6px;
   cursor: pointer;
+  flex-shrink: 0;
+  white-space: nowrap;
   transition: all var(--transition-fast);
 }
 
 .trash-action-btn:hover {
-  background: rgba(244, 63, 94, 0.22);
-  border-color: rgba(244, 63, 94, 0.45);
+  background: #e11d48;
+  border-color: #f43f5e;
   color: #ffffff;
+  transform: translateY(-1px);
 }
 
 /* Dev Bloat Checklist */

@@ -34,6 +34,7 @@ import { useStorageStore } from '../../stores/storageStore';
 import { formatBytes } from '@shared/utils/formatters';
 import { calculateSmartFilterStats } from '@shared/analyzer/filterMatcher';
 import type { QuickTarget } from '@shared/types/ipc';
+import '../common/ConfirmModal.css';
 import './Sidebar.css';
 
 const SMART_FILTER_ITEMS = [
@@ -315,32 +316,36 @@ export const Sidebar: React.FC = () => {
             onClick={() => openTrash()}
             title={`Click to open ${platform === 'darwin' ? 'Trash in Finder' : 'Recycle Bin'}`}
           >
-            <Trash2 size={15} color="#f59e0b" />
+            <div className="trash-icon-wrap">
+              <Trash2 size={15} color="#f59e0b" />
+            </div>
             <div className="trash-text-group">
-              <span className="trash-title">Trash</span>
-              <span className="trash-count-badge">
-                {trashInfo?.itemCount || 0} {trashInfo?.itemCount === 1 ? 'item' : 'items'}
+              <div className="trash-title-line">
+                <span className="trash-title">{platform === 'darwin' ? 'Trash' : 'Recycle Bin'}</span>
+                {trashInfo && trashInfo.totalSize > 0 && (
+                  <span className="trash-size-badge" title="Total storage occupied by Trash">
+                    {formatBytes(trashInfo.totalSize, 1)}
+                  </span>
+                )}
+              </div>
+              <span className="trash-subtitle">
+                {trashInfo && trashInfo.itemCount > 0
+                  ? `${trashInfo.itemCount.toLocaleString()} ${trashInfo.itemCount === 1 ? 'item' : 'items'}`
+                  : 'Empty'}
               </span>
             </div>
           </div>
 
-          <div className="trash-right-group">
-            {trashInfo && trashInfo.totalSize > 0 && (
-              <span className="trash-size-badge" title="Total storage occupied by Trash">
-                {formatBytes(trashInfo.totalSize, 1)}
-              </span>
-            )}
-            {(trashInfo?.itemCount || 0) > 0 && (
-              <button
-                type="button"
-                className="trash-action-btn"
-                onClick={handleEmptyTrash}
-                title={`Permanently empty ${platform === 'darwin' ? 'Trash' : 'Recycle Bin'}`}
-              >
-                Empty
-              </button>
-            )}
-          </div>
+          {(trashInfo?.itemCount || 0) > 0 && (
+            <button
+              type="button"
+              className="trash-action-btn"
+              onClick={handleEmptyTrash}
+              title={`Permanently empty ${platform === 'darwin' ? 'Trash' : 'Recycle Bin'}`}
+            >
+              Empty
+            </button>
+          )}
         </div>
 
         {/* Smart Filters */}
@@ -358,7 +363,11 @@ export const Sidebar: React.FC = () => {
                   key={item.id}
                   className={`filter-item ${isChecked ? 'active' : ''} ${!hasSize ? 'zero-stat' : ''}`}
                   onClick={() => toggleDevFilter(item.id)}
-                  title={hasSize ? `${stat.count} items (${formatBytes(stat.size)})` : `0 items found in current scan`}
+                  title={
+                    hasSize
+                      ? `${item.label} • ${stat.count.toLocaleString()} ${stat.count === 1 ? 'item' : 'items'} (${formatBytes(stat.size)})`
+                      : `${item.label} • 0 items found in current scan`
+                  }
                 >
                   <div className="filter-checkbox">
                     {isChecked && <Check size={10} color="#ffffff" />}
@@ -387,7 +396,11 @@ export const Sidebar: React.FC = () => {
                     key={item.id}
                     className={`filter-item ${isChecked ? 'active' : ''} ${!hasSize ? 'zero-stat' : ''}`}
                     onClick={() => toggleDevFilter(item.id)}
-                    title={hasSize ? `${stat.count} items (${formatBytes(stat.size)})` : `0 items found in current scan`}
+                    title={
+                      hasSize
+                        ? `${item.label} • ${stat.count.toLocaleString()} ${stat.count === 1 ? 'item' : 'items'} (${formatBytes(stat.size)})`
+                        : `${item.label} • 0 items found in current scan`
+                    }
                   >
                     <div className="filter-checkbox">
                       {isChecked && <Check size={10} color="#ffffff" />}
@@ -448,7 +461,7 @@ export const Sidebar: React.FC = () => {
 
       {/* Empty Trash Confirmation Dialog */}
       {isConfirmEmptyTrashOpen && (
-        <div className="modal-overlay" onClick={() => setIsConfirmEmptyTrashOpen(false)}>
+        <div className="modal-overlay" onClick={() => !isEmptyingTrash && setIsConfirmEmptyTrashOpen(false)}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <div
@@ -466,8 +479,8 @@ export const Sidebar: React.FC = () => {
                 {trashInfo?.totalSize ? ` (${formatBytes(trashInfo.totalSize)})` : ''} in the{' '}
                 {platform === 'darwin' ? 'Trash' : 'Recycle Bin'}?
               </p>
-              <div style={{ fontSize: '12px', color: '#f43f5e', marginTop: '8px' }}>
-                This action cannot be undone.
+              <div style={{ fontSize: '12px', color: '#f43f5e', marginTop: '8px', fontWeight: 500 }}>
+                ⚠️ This action is permanent and cannot be undone.
               </div>
             </div>
             <div className="modal-actions">
