@@ -29,11 +29,11 @@ export const ScanningView: React.FC = () => {
       </div>
 
       <h2 className="scanning-title">
-        {isFinalizing ? 'Generating Treemap' : 'Analyzing Storage'}
+        {isFinalizing ? 'Preparing Visualizations' : 'Analyzing Storage'}
       </h2>
       <p className="scanning-subtitle">
         {isFinalizing
-          ? 'Calculating folder hierarchies & rendering interactive treemap...'
+          ? 'Calculating folder hierarchies & rendering storage breakdown...'
           : 'Building filesystem tree and computing folder sizes...'}
       </p>
 
@@ -60,7 +60,7 @@ export const ScanningView: React.FC = () => {
       </div>
 
       <div className="scanning-path-box" title={currentItemPath}>
-        {isFinalizing ? 'Finalizing storage map and rendering...' : truncatePath(currentItemPath, 70)}
+        {isFinalizing ? 'Finalizing storage visualization...' : truncatePath(currentItemPath, 70)}
       </div>
 
       {!isFinalizing && (

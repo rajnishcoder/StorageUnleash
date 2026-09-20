@@ -412,7 +412,7 @@ export const TreemapView: React.FC<TreemapViewProps> = ({ onContextMenu }) => {
         ) : (
           <div className="treemap-loader-container">
             <div className="treemap-loader-spinner" />
-            <span className="treemap-loader-text">Rendering Interactive Treemap...</span>
+            <span className="treemap-loader-text">Loading visualization...</span>
           </div>
         )}
       </div>

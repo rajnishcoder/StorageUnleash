@@ -287,7 +287,7 @@ export const SunburstView: React.FC<SunburstViewProps> = ({
 
         {/* Right Radial Chart Panel */}
         <div className="sunburst-chart-panel" ref={chartContainerRef}>
-          {sunburstLayout && chartDimensions.width > 0 && chartDimensions.height > 0 && (
+          {sunburstLayout && chartDimensions.width > 0 && chartDimensions.height > 0 ? (
             <svg
               className="sunburst-svg"
               width={chartDimensions.width}
@@ -372,6 +372,11 @@ export const SunburstView: React.FC<SunburstViewProps> = ({
                 )}
               </g>
             </svg>
+          ) : (
+            <div className="treemap-loader-container">
+              <div className="treemap-loader-spinner" />
+              <span className="treemap-loader-text">Loading visualization...</span>
+            </div>
           )}
 
           {/* Floating Tooltip */}
