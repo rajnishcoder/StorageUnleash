@@ -28,7 +28,7 @@ export const App: React.FC = () => {
             </div>
           )}
 
-          {scanStatus === 'scanning' && <ScanningView />}
+          {(scanStatus === 'scanning' || scanStatus === 'preparing') && <ScanningView />}
           {scanStatus === 'completed' && <StoragePage />}
           {(scanStatus === 'idle' || scanStatus === 'cancelled' || scanStatus === 'error') && <HomePage />}
         </main>

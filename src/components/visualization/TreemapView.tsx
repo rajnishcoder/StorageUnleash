@@ -405,10 +405,15 @@ export const TreemapView: React.FC<TreemapViewProps> = ({ onContextMenu }) => {
       )}
 
       <div className="treemap-canvas-wrapper">
-        {dimensions.width > 0 && dimensions.height > 0 && (
+        {dimensions.width > 0 && dimensions.height > 0 && hierarchicalRects.length > 0 ? (
           <svg className="treemap-svg" width={dimensions.width} height={dimensions.height}>
             {hierarchicalRects.map((rect, idx) => renderRect(rect, idx))}
           </svg>
+        ) : (
+          <div className="treemap-loader-container">
+            <div className="treemap-loader-spinner" />
+            <span className="treemap-loader-text">Rendering Interactive Treemap...</span>
+          </div>
         )}
       </div>
     </div>

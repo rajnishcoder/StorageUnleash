@@ -5,7 +5,7 @@ import { formatBytes, formatNumber, truncatePath } from '@shared/utils/formatter
 import './ScanningView.css';
 
 export const ScanningView: React.FC = () => {
-  const { progress, cancelScan, currentScanPath } = useStorageStore();
+  const { progress, cancelScan, currentScanPath, scanStatus } = useStorageStore();
 
   const filesCount = progress?.filesScanned || 0;
   const dirsCount = progress?.directoriesScanned || 0;
@@ -13,6 +13,7 @@ export const ScanningView: React.FC = () => {
   const currentItemPath = progress?.currentPath || currentScanPath || 'Starting scan...';
 
   const isFinalizing =
+    scanStatus === 'preparing' ||
     progress?.percentage === 100 ||
     currentItemPath.includes('Finalizing') ||
     currentItemPath === 'Scan completed';
@@ -20,17 +21,28 @@ export const ScanningView: React.FC = () => {
   return (
     <div className="scanning-container">
       <div className={`scanning-pulse ${isFinalizing ? 'finalizing' : ''}`}>
-        <FolderSearch size={36} />
+        {isFinalizing ? (
+          <div className="scanning-spinner" />
+        ) : (
+          <FolderSearch size={36} />
+        )}
       </div>
 
       <h2 className="scanning-title">
-        {isFinalizing ? 'Finalizing Storage Map' : 'Analyzing Storage'}
+        {isFinalizing ? 'Generating Treemap' : 'Analyzing Storage'}
       </h2>
       <p className="scanning-subtitle">
         {isFinalizing
-          ? 'Calculating smart categories & preparing treemap visualization...'
+          ? 'Calculating folder hierarchies & rendering interactive treemap...'
           : 'Building filesystem tree and computing folder sizes...'}
       </p>
+
+      {/* Shimmering Progress Bar when Finalizing */}
+      {isFinalizing && (
+        <div className="scanning-progress-bar-wrap">
+          <div className="scanning-progress-bar-fill" />
+        </div>
+      )}
 
       <div className="scanning-stats-grid">
         <div className="scanning-stat-card">
@@ -48,7 +60,7 @@ export const ScanningView: React.FC = () => {
       </div>
 
       <div className="scanning-path-box" title={currentItemPath}>
-        {truncatePath(currentItemPath, 70)}
+        {isFinalizing ? 'Finalizing storage map and rendering...' : truncatePath(currentItemPath, 70)}
       </div>
 
       {!isFinalizing && (

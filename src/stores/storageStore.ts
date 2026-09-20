@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import type { FileNode, ScanProgress, ScanResult, ScanError } from '@shared/models/fileNode';
 import type { QuickTarget, DiskSpaceInfo, TrashInfo } from '@shared/types/ipc';
 
-export type ScanStatus = 'idle' | 'scanning' | 'completed' | 'cancelled' | 'error';
+export type ScanStatus = 'idle' | 'scanning' | 'preparing' | 'completed' | 'cancelled' | 'error';
 export type ViewMode = 'treemap' | 'sunburst' | 'list';
 
 export interface StorageState {
@@ -64,12 +64,17 @@ export const useStorageStore = create<StorageState>((set, get) => {
 
     window.storageAPI.onScanComplete((scanResult) => {
       set({
-        scanStatus: 'completed',
+        scanStatus: 'preparing',
         scanResult,
         currentDirectory: scanResult.root,
         breadcrumbs: [scanResult.root],
         selectedNode: null
       });
+
+      // Smooth transition giving time for UI to prepare and render treemap
+      setTimeout(() => {
+        set({ scanStatus: 'completed' });
+      }, 300);
     });
 
     window.storageAPI.onScanError((error: ScanError) => {
