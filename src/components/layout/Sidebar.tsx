@@ -537,9 +537,12 @@ export const Sidebar: React.FC = () => {
                 onClick={handleConfirmEmpty}
                 disabled={isEmptyingTrash}
               >
-                {isEmptyingTrash
-                  ? 'Emptying...'
-                  : `Empty ${platform === 'darwin' ? 'Trash' : 'Recycle Bin'}`}
+                <Trash2 size={14} />
+                <span>
+                  {isEmptyingTrash
+                    ? 'Emptying...'
+                    : `Empty ${platform === 'darwin' ? 'Trash' : 'Recycle Bin'}`}
+                </span>
               </button>
             </div>
           </div>

@@ -51,7 +51,8 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             Cancel
           </button>
           <button type="button" className="modal-btn confirm-trash" onClick={onConfirm}>
-            Move to {trashName}
+            <Trash2 size={14} />
+            <span>Move to {trashName}</span>
           </button>
         </div>
       </div>
