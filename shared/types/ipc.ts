@@ -42,9 +42,10 @@ export const IPC_CHANNELS = {
   SCAN_COMPLETE: 'storage:scan-complete',
   SCAN_ERROR: 'storage:scan-error',
   
-  // File operations
+  // File & External operations
   REVEAL_IN_FILE_MANAGER: 'storage:reveal-in-file-manager',
   MOVE_TO_TRASH: 'storage:move-to-trash',
+  OPEN_EXTERNAL_URL: 'storage:open-external-url',
   
   // System metadata
   GET_PLATFORM: 'storage:get-platform'
@@ -66,6 +67,7 @@ export interface StorageAPI {
   cancelScan(): Promise<void>;
   revealInFileManager(path: string): Promise<void>;
   moveToTrash(paths: string[]): Promise<TrashResult>;
+  openExternalUrl(url: string): Promise<void>;
   getPlatform(): Promise<string>;
   onScanProgress(callback: (progress: ScanProgress) => void): () => void;
   onScanComplete(callback: (result: ScanResult) => void): () => void;

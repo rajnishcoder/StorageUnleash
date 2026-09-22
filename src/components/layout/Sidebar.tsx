@@ -28,9 +28,12 @@ import {
   MessageSquare,
   Gamepad2,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Heart,
+  Bug
 } from 'lucide-react';
 import { useStorageStore } from '../../stores/storageStore';
+import { SupportModal } from '../common/SupportModal';
 import { formatBytes } from '@shared/utils/formatters';
 import { calculateSmartFilterStats } from '@shared/analyzer/filterMatcher';
 import type { QuickTarget } from '@shared/types/ipc';
@@ -76,6 +79,7 @@ export const Sidebar: React.FC = () => {
   const [showAllFilters, setShowAllFilters] = useState(false);
   const [isConfirmEmptyTrashOpen, setIsConfirmEmptyTrashOpen] = useState(false);
   const [isEmptyingTrash, setIsEmptyingTrash] = useState(false);
+  const [isSupportOpen, setIsSupportOpen] = useState(false);
 
   const {
     startScan,
@@ -108,6 +112,15 @@ export const Sidebar: React.FC = () => {
     } finally {
       setIsEmptyingTrash(false);
       setIsConfirmEmptyTrashOpen(false);
+    }
+  };
+
+  const handleOpenFeedback = () => {
+    const url = 'https://github.com/rajnishcoder/StorageUnleash/issues';
+    if (window.storageAPI?.openExternalUrl) {
+      window.storageAPI.openExternalUrl(url).catch(() => window.open(url, '_blank'));
+    } else {
+      window.open(url, '_blank');
     }
   };
 
@@ -456,8 +469,34 @@ export const Sidebar: React.FC = () => {
       </div>
 
       <div className="sidebar-footer">
-        StorageUnleash v0.1.0
+        <div className="sidebar-footer-left">
+          <span className="sidebar-version">v0.1.0</span>
+          <button
+            type="button"
+            className="sidebar-feedback-btn"
+            onClick={handleOpenFeedback}
+            title="Report a bug or send feedback on GitHub"
+          >
+            <Bug size={11} />
+            <span>Feedback</span>
+          </button>
+        </div>
+        <button
+          type="button"
+          className="sidebar-support-btn"
+          onClick={() => setIsSupportOpen(true)}
+          title="Support Storage Unleashed"
+        >
+          <Heart size={12} className="heart-icon-sidebar" />
+          <span>Support</span>
+        </button>
       </div>
+
+      {/* Support Project Modal */}
+      <SupportModal
+        isOpen={isSupportOpen}
+        onClose={() => setIsSupportOpen(false)}
+      />
 
       {/* Empty Trash Confirmation Dialog */}
       {isConfirmEmptyTrashOpen && (

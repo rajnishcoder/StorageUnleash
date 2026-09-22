@@ -43,6 +43,10 @@ const storageAPI: StorageAPI = {
     return ipcRenderer.invoke(IPC_CHANNELS.MOVE_TO_TRASH, paths);
   },
 
+  openExternalUrl: (url: string): Promise<void> => {
+    return ipcRenderer.invoke(IPC_CHANNELS.OPEN_EXTERNAL_URL, url);
+  },
+
   getPlatform: (): Promise<string> => {
     return ipcRenderer.invoke(IPC_CHANNELS.GET_PLATFORM);
   },

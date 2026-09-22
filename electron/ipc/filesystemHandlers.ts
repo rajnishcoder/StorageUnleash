@@ -128,6 +128,19 @@ export function registerFilesystemHandlers(mainWindow: BrowserWindow): void {
     }
   });
 
+  // Open External URL in default browser
+  ipcMain.handle(IPC_CHANNELS.OPEN_EXTERNAL_URL, async (_event, url: string) => {
+    if (!url || typeof url !== 'string' || !url.startsWith('http')) {
+      throw new Error('Invalid URL provided to openExternalUrl');
+    }
+    try {
+      await shell.openExternal(url);
+    } catch (error) {
+      console.error(`[Main] Failed to open external URL: ${url}`, error);
+      throw error;
+    }
+  });
+
   // Get current OS platform
   ipcMain.handle(IPC_CHANNELS.GET_PLATFORM, async () => {
     return process.platform;

@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { useStorageStore } from '../../stores/storageStore';
 import { Breadcrumbs } from '../../components/storage/Breadcrumbs';
 import { TreemapView } from '../../components/visualization/TreemapView';
+import { SunburstView } from '../../components/visualization/SunburstView';
 import { LargestFilesView } from '../../components/storage/LargestFilesView';
 import { ConfirmModal } from '../../components/common/ConfirmModal';
 import { ContextMenu } from '../../components/common/ContextMenu';
 import { CleanupListModal } from '../../components/storage/CleanupListModal';
+import { SupportModal } from '../../components/common/SupportModal';
 import { formatBytes, formatNumber } from '@shared/utils/formatters';
 import { ExternalLink, Trash2, X, Folder, File, Layers, Check } from 'lucide-react';
 import type { FileNode } from '@shared/models/fileNode';
@@ -26,6 +28,26 @@ export const StoragePage: React.FC = () => {
   const [trashCandidate, setTrashCandidate] = useState<FileNode | null>(null);
   const [contextMenuTarget, setContextMenuTarget] = useState<{ node: FileNode; x: number; y: number } | null>(null);
   const [isCleanupModalOpen, setIsCleanupModalOpen] = useState(false);
+  const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
+  const [reclaimedBytes, setReclaimedBytes] = useState(0);
+
+  const checkAndPromptSupport = (freedSize: number) => {
+    if (freedSize <= 0) return;
+    const lastDismissed = localStorage.getItem('su_support_last_dismissed');
+    const alreadySupported = localStorage.getItem('su_support_supported');
+    if (alreadySupported) return;
+
+    // Cooldown check (7 days)
+    if (lastDismissed) {
+      const elapsed = Date.now() - parseInt(lastDismissed, 10);
+      if (elapsed < 7 * 24 * 60 * 60 * 1000) return;
+    }
+
+    setReclaimedBytes(freedSize);
+    setTimeout(() => {
+      setIsSupportModalOpen(true);
+    }, 600);
+  };
 
   const handleReveal = async (path: string) => {
     if (window.storageAPI) {
@@ -47,12 +69,14 @@ export const StoragePage: React.FC = () => {
 
   const handleConfirmTrash = async () => {
     if (!trashCandidate) return;
+    const freedSize = trashCandidate.size;
 
     if (window.storageAPI) {
       try {
         const result = await window.storageAPI.moveToTrash([trashCandidate.path]);
         if (result.success) {
           removePathFromTree(trashCandidate.path);
+          checkAndPromptSupport(freedSize);
         } else {
           alert('Failed to move item to trash: ' + (result.results[0]?.error || 'Unknown error'));
         }
@@ -65,6 +89,7 @@ export const StoragePage: React.FC = () => {
 
   const handleConfirmBatchClean = async (nodes: FileNode[]) => {
     if (!nodes || nodes.length === 0) return;
+    const totalBatchBytes = nodes.reduce((acc, n) => acc + n.size, 0);
 
     if (window.storageAPI) {
       try {
@@ -76,6 +101,7 @@ export const StoragePage: React.FC = () => {
 
         if (successfulPaths.length > 0) {
           removePathsFromTree(successfulPaths);
+          checkAndPromptSupport(totalBatchBytes);
         }
 
         if (!result.success) {
@@ -104,6 +130,11 @@ export const StoragePage: React.FC = () => {
             <LargestFilesView
               onTrashRequest={(node) => setTrashCandidate(node)}
               onContextMenu={handleContextMenu}
+            />
+          ) : viewMode === 'sunburst' ? (
+            <SunburstView
+              onContextMenu={handleContextMenu}
+              onOpenCleanupModal={() => setIsCleanupModalOpen(true)}
             />
           ) : (
             <TreemapView onContextMenu={handleContextMenu} />
@@ -254,6 +285,13 @@ export const StoragePage: React.FC = () => {
         isOpen={isCleanupModalOpen}
         onClose={() => setIsCleanupModalOpen(false)}
         onConfirmClean={handleConfirmBatchClean}
+      />
+
+      {/* Post-Value Supporter Modal */}
+      <SupportModal
+        isOpen={isSupportModalOpen}
+        onClose={() => setIsSupportModalOpen(false)}
+        reclaimedBytes={reclaimedBytes}
       />
     </div>
   );
