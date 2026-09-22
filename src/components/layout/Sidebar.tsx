@@ -67,12 +67,12 @@ const SMART_FILTER_ITEMS = [
 ];
 
 const FILE_TYPE_LEGEND = [
-  { label: 'Video', color: '#e11d48' },
-  { label: 'Image', color: '#db2777' },
-  { label: 'Doc', color: '#2563eb' },
-  { label: 'Dev', color: '#059669' },
-  { label: 'Archive', color: '#c2410c' },
-  { label: 'Other', color: '#475569' }
+  { label: 'Video', color: '#8b5cf6' },
+  { label: 'Image', color: '#ec4899' },
+  { label: 'Doc', color: '#3b82f6' },
+  { label: 'Dev', color: '#10b981' },
+  { label: 'Archive', color: '#f59e0b' },
+  { label: 'Other', color: '#64748b' }
 ];
 
 export const Sidebar: React.FC = () => {

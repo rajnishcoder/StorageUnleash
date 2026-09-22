@@ -26,14 +26,14 @@ const EXTENSION_MAP: Record<string, FileCategory> = {
 };
 
 export const CATEGORY_COLORS: Record<FileCategory, string> = {
-  video: '#e11d48',       // Crimson / Rose
-  image: '#db2777',       // Pink
-  audio: '#9333ea',       // Purple
-  document: '#2563eb',    // Royal Blue
-  archive: '#c2410c',     // Warm Rust / Terracotta (deep sophisticated amber)
-  application: '#0891b2', // Deep Cyan
-  code: '#059669',        // Forest Emerald
-  other: '#475569'        // Slate
+  video: '#8b5cf6',       // Vibrant Violet / Iris
+  image: '#ec4899',       // Rose Pink
+  audio: '#06b6d4',       // Electric Cyan
+  document: '#3b82f6',    // Sapphire Blue
+  archive: '#f59e0b',     // Warm Amber / Gold
+  application: '#0891b2', // Deep Cyan / Teal
+  code: '#10b981',        // Emerald Green
+  other: '#64748b'        // Slate Steel
 };
 
 export const CATEGORY_LABELS: Record<FileCategory, string> = {

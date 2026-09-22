@@ -22,18 +22,18 @@ export interface SunburstLayout {
 
 // Vibrant reference color palette distributed across root child branches
 export const SUNBURST_PALETTE = [
-  '#a855f7', // Purple / Violet
+  '#8b5cf6', // Violet
   '#ec4899', // Pink / Magenta
-  '#f43f5e', // Rose / Ruby
-  '#f97316', // Orange / Terracotta
-  '#eab308', // Amber / Gold
-  '#84cc16', // Lime
-  '#10b981', // Emerald / Green
-  '#06b6d4', // Cyan
   '#3b82f6', // Blue
+  '#06b6d4', // Cyan
+  '#f59e0b', // Amber / Gold
+  '#10b981', // Emerald / Green
   '#6366f1', // Indigo
-  '#d946ef', // Fuchsia
-  '#14b8a6'  // Teal
+  '#f97316', // Orange
+  '#84cc16', // Lime
+  '#a855f7', // Purple
+  '#14b8a6', // Teal
+  '#0ea5e9'  // Sky
 ];
 
 /**

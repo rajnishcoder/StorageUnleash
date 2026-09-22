@@ -8,36 +8,36 @@ import { Layers } from 'lucide-react';
 import type { FileNode } from '@shared/models/fileNode';
 import './TreemapView.css';
 
-// 12 Rich distinct branch container themes matching DissectMac
+// 12 Rich distinct branch container themes matching modern dark-mode palettes
 const BRANCH_CONTAINER_THEMES = [
   '#2a3b50', // Steel Slate Blue
   '#233f2e', // Forest Green
   '#433421', // Warm Terracotta Amber
   '#3a264e', // Plum Violet
   '#1a3a42', // Ocean Teal
-  '#44262c', // Warm Coral / Wine
+  '#352943', // Slate Wine
   '#314023', // Olive Moss
   '#282c52', // Deep Indigo
   '#482d1c', // Warm Copper
-  '#442237', // Deep Rose
+  '#3b283e', // Deep Plum
   '#1c4037', // Mint Sage
   '#263342'  // Graphite Blue
 ];
 
-// Rich leaf accents for diverse, colorful tile rendering
+// Rich leaf accents for diverse, colorful tile rendering (no harsh reds)
 const BRANCH_LEAF_COLORS = [
+  '#8b5cf6', // Violet
   '#3b82f6', // Blue
   '#10b981', // Emerald
   '#f59e0b', // Amber
-  '#8b5cf6', // Violet
   '#06b6d4', // Cyan
-  '#f43f5e', // Coral Rose
+  '#ec4899', // Pink
   '#84cc16', // Lime Green
   '#6366f1', // Indigo
   '#f97316', // Orange
-  '#ec4899', // Pink
   '#14b8a6', // Teal
-  '#0ea5e9'  // Sky
+  '#0ea5e9', // Sky
+  '#a855f7'  // Purple
 ];
 
 function adjustColorShade(hex: string, index: number): string {
