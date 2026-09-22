@@ -32,6 +32,9 @@ export interface StorageState {
   // Cleanup List (Review & Batch Action Queue)
   cleanupList: FileNode[];
 
+  // Pending Disk Changes (Items deleted, size updated in memory)
+  hasPendingDiskChanges: boolean;
+
   // Actions
   init: () => Promise<void>;
   startScan: (targetPath: string) => Promise<void>;
@@ -68,7 +71,8 @@ export const useStorageStore = create<StorageState>((set, get) => {
         scanResult,
         currentDirectory: scanResult.root,
         breadcrumbs: [scanResult.root],
-        selectedNode: null
+        selectedNode: null,
+        hasPendingDiskChanges: false
       });
 
       // Smooth transition giving time for UI to prepare and render treemap
@@ -105,6 +109,7 @@ export const useStorageStore = create<StorageState>((set, get) => {
     searchQuery: '',
     devFilters: {},
     cleanupList: [],
+    hasPendingDiskChanges: false,
 
     init: async () => {
       if (typeof window !== 'undefined' && window.storageAPI) {
@@ -142,7 +147,8 @@ export const useStorageStore = create<StorageState>((set, get) => {
         errorMessage: null,
         selectedNode: null,
         searchQuery: '',
-        cleanupList: []
+        cleanupList: [],
+        hasPendingDiskChanges: false
       });
 
       if (typeof window !== 'undefined' && window.storageAPI) {
@@ -248,7 +254,8 @@ export const useStorageStore = create<StorageState>((set, get) => {
         selectedNode: null,
         progress: null,
         searchQuery: '',
-        cleanupList: []
+        cleanupList: [],
+        hasPendingDiskChanges: false
       });
     },
 
@@ -260,7 +267,7 @@ export const useStorageStore = create<StorageState>((set, get) => {
     },
 
     removePathFromTree: (deletedPath: string) => {
-      const { scanResult, currentDirectory, cleanupList } = get();
+      const { scanResult, currentDirectory, breadcrumbs, cleanupList } = get();
       if (!scanResult) return;
 
       function prune(node: FileNode): FileNode | null {
@@ -289,13 +296,37 @@ export const useStorageStore = create<StorageState>((set, get) => {
         return node;
       }
 
+      function findNodeInTree(root: FileNode, targetPath: string): FileNode | null {
+        if (root.path === targetPath) return root;
+        if (!root.children || root.children.length === 0) return null;
+        for (const child of root.children) {
+          if (child.path === targetPath) return child;
+          if (child.type === 'directory') {
+            const found = findNodeInTree(child, targetPath);
+            if (found) return found;
+          }
+        }
+        return null;
+      }
+
       prune(scanResult.root);
 
+      const updatedRoot = { ...scanResult.root };
+      const updatedCurrentDir = currentDirectory
+        ? findNodeInTree(updatedRoot, currentDirectory.path) || updatedRoot
+        : updatedRoot;
+
+      const updatedBreadcrumbs = breadcrumbs.map((b) =>
+        findNodeInTree(updatedRoot, b.path) || b
+      );
+
       set({
-        scanResult: { ...scanResult, root: scanResult.root, totalSize: scanResult.root.size },
-        currentDirectory: currentDirectory ? { ...currentDirectory } : null,
+        scanResult: { ...scanResult, root: updatedRoot, totalSize: updatedRoot.size },
+        currentDirectory: { ...updatedCurrentDir },
+        breadcrumbs: updatedBreadcrumbs.length > 0 ? updatedBreadcrumbs : [updatedRoot],
         selectedNode: null,
-        cleanupList: cleanupList.filter((item) => item.path !== deletedPath)
+        cleanupList: cleanupList.filter((item) => item.path !== deletedPath),
+        hasPendingDiskChanges: true
       });
 
       // Update live trash stats and disk space
@@ -306,7 +337,7 @@ export const useStorageStore = create<StorageState>((set, get) => {
     },
 
     removePathsFromTree: (deletedPaths: string[]) => {
-      const { scanResult, currentDirectory, cleanupList } = get();
+      const { scanResult, currentDirectory, breadcrumbs, cleanupList } = get();
       if (!scanResult || deletedPaths.length === 0) return;
 
       const pathSet = new Set(deletedPaths);
@@ -337,13 +368,37 @@ export const useStorageStore = create<StorageState>((set, get) => {
         return node;
       }
 
+      function findNodeInTree(root: FileNode, targetPath: string): FileNode | null {
+        if (root.path === targetPath) return root;
+        if (!root.children || root.children.length === 0) return null;
+        for (const child of root.children) {
+          if (child.path === targetPath) return child;
+          if (child.type === 'directory') {
+            const found = findNodeInTree(child, targetPath);
+            if (found) return found;
+          }
+        }
+        return null;
+      }
+
       prune(scanResult.root);
 
+      const updatedRoot = { ...scanResult.root };
+      const updatedCurrentDir = currentDirectory
+        ? findNodeInTree(updatedRoot, currentDirectory.path) || updatedRoot
+        : updatedRoot;
+
+      const updatedBreadcrumbs = breadcrumbs.map((b) =>
+        findNodeInTree(updatedRoot, b.path) || b
+      );
+
       set({
-        scanResult: { ...scanResult, root: scanResult.root, totalSize: scanResult.root.size },
-        currentDirectory: currentDirectory ? { ...currentDirectory } : null,
+        scanResult: { ...scanResult, root: updatedRoot, totalSize: updatedRoot.size },
+        currentDirectory: { ...updatedCurrentDir },
+        breadcrumbs: updatedBreadcrumbs.length > 0 ? updatedBreadcrumbs : [updatedRoot],
         selectedNode: null,
-        cleanupList: cleanupList.filter((item) => !pathSet.has(item.path))
+        cleanupList: cleanupList.filter((item) => !pathSet.has(item.path)),
+        hasPendingDiskChanges: true
       });
 
       // Update live trash stats and disk space
