@@ -29,6 +29,7 @@
     ],
     "mac": {
       "category": "public.app-category.utilities",
+      "icon": "build/icon.icns",
       "target": [
         {
           "target": "dmg",

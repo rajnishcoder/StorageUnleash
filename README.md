@@ -1,5 +1,11 @@
 # StorageUnleash 🚀
 
+[![Website](https://img.shields.io/badge/Website-storageunleashed.com-0284c7?style=flat-square&logo=globe)](https://www.storageunleashed.com)
+[![Platform](https://img.shields.io/badge/Platform-macOS-171717?style=flat-square&logo=apple&logoColor=white)](https://www.storageunleashed.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](https://opensource.org/licenses/MIT)
+
+🌐 **Official Website**: [https://www.storageunleashed.com](https://www.storageunleashed.com)
+
 A fast, modern, visual desktop storage analyzer crafted specifically for **macOS** (Apple Silicon & Intel). Understand, explore, and reclaim what is consuming storage on your Mac through intuitive treemaps, radial sunburst charts, and 1-click cleanup workflows.
 
 ---
