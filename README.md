@@ -1,6 +1,7 @@
 # StorageUnleash 🚀
 
 [![Website](https://img.shields.io/badge/Website-storageunleashed.com-0284c7?style=flat-square&logo=globe)](https://www.storageunleashed.com)
+[![GitHub Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-ea4aaa?style=flat-square&logo=githubsponsors&logoColor=white)](https://github.com/sponsors/rajnishcoder)
 [![Platform](https://img.shields.io/badge/Platform-macOS-171717?style=flat-square&logo=apple&logoColor=white)](https://www.storageunleashed.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
@@ -109,4 +110,16 @@ StorageUnleash/
 - **Node Integration**: Disabled in renderer (`nodeIntegration: false`).
 - **Controlled Preload Bridge**: Renderer interacts only via explicit, typed `window.storageAPI` methods.
 - **Privacy First**: Completely local; zero network analytics or telemetry.
+
+---
+
+## 💖 Support & Sponsoring
+
+StorageUnleash is 100% free, privacy-first, and open-source software. If you find it useful for analyzing disk space and keeping your Mac clean, consider supporting its continuous maintenance and feature development:
+
+- 💖 **GitHub Sponsors**: [github.com/sponsors/rajnishcoder](https://github.com/sponsors/rajnishcoder)
+- ☕ **Buy Me a Coffee**: [buymeacoffee.com/rajnishcoder](https://buymeacoffee.com/rajnishcoder)
+
+Every contribution helps keep the project actively maintained and free for everyone!
+
 
