@@ -1,6 +1,22 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
 import type { FileNode, ScanProgress, ScanResult, ScanError } from '@shared/models/fileNode';
+
+function isMacOSProtectedDir(dirPath: string): boolean {
+  if (process.platform !== 'darwin') return false;
+  const home = os.homedir();
+  const normalized = path.resolve(dirPath);
+  const protectedTargets = [
+    path.join(home, 'Downloads'),
+    path.join(home, 'Documents'),
+    path.join(home, 'Desktop'),
+    path.join(home, 'Pictures'),
+    path.join(home, 'Movies'),
+    path.join(home, 'Music')
+  ];
+  return protectedTargets.some((t) => normalized === t);
+}
 
 export class FilesystemScanner {
   private isCancelled: boolean = false;
@@ -35,6 +51,13 @@ export class FilesystemScanner {
     const normalizedRoot = path.resolve(rootPath);
     const rootNode = await this.scanDirectory(normalizedRoot, path.basename(normalizedRoot) || normalizedRoot);
 
+    // If root failed with permission error or is restricted protected folder returning 0 items on macOS
+    const hasPermError = this.errors.some((e) => e.code === 'EPERM' || e.code === 'EACCES' || e.path === normalizedRoot);
+    if (rootNode.permissionDenied || hasPermError || (isMacOSProtectedDir(normalizedRoot) && (!rootNode.children || rootNode.children.length === 0))) {
+      rootNode.permissionDenied = true;
+      rootNode.errorCode = rootNode.errorCode || 'EPERM';
+    }
+
     // Final progress emission
     if (this.progressCallback && !this.isCancelled) {
       this.progressCallback({
@@ -52,7 +75,8 @@ export class FilesystemScanner {
       totalFiles: rootNode.fileCount || this.filesScanned,
       totalDirectories: rootNode.directoryCount || this.directoriesScanned,
       durationMs: Date.now() - startTime,
-      errors: this.errors
+      errors: this.errors,
+      hasPermissionError: hasPermError || rootNode.permissionDenied
     };
   }
 
@@ -93,6 +117,8 @@ export class FilesystemScanner {
       entries = await fs.promises.readdir(dirPath, { withFileTypes: true });
     } catch (err: any) {
       this.recordError(dirPath, err);
+      node.permissionDenied = true;
+      node.errorCode = err?.code || 'EPERM';
       return node;
     }
 
@@ -213,6 +239,12 @@ export class FilesystemScanner {
     node.children = childrenNodes;
     node.fileCount = totalFileCount;
     node.directoryCount = totalDirectoryCount;
+
+    // If this is a protected macOS directory and returned 0 items, mark as permission denied
+    if (isMacOSProtectedDir(dirPath) && childrenNodes.length === 0) {
+      node.permissionDenied = true;
+      node.errorCode = node.errorCode || 'EPERM';
+    }
 
     return node;
   }

@@ -141,6 +141,26 @@ export function registerFilesystemHandlers(mainWindow: BrowserWindow): void {
     }
   });
 
+  // Open System Privacy Settings (Files and Folders or Full Disk Access on macOS)
+  ipcMain.handle(IPC_CHANNELS.OPEN_SYSTEM_PRIVACY_SETTINGS, async (_event, target?: string) => {
+    if (process.platform === 'darwin') {
+      try {
+        if (target === 'full-disk') {
+          await shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles');
+        } else {
+          await shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_FilesAndFolders');
+        }
+      } catch (err) {
+        console.error('[Main] Failed to open Privacy settings URL:', err);
+        try {
+          await shell.openExternal('x-apple.systempreferences:com.apple.preference.security');
+        } catch {
+          // ignore
+        }
+      }
+    }
+  });
+
   // Get current OS platform
   ipcMain.handle(IPC_CHANNELS.GET_PLATFORM, async () => {
     return process.platform;
