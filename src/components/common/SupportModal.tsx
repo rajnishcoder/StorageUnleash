@@ -9,6 +9,8 @@ interface SupportModalProps {
   reclaimedBytes?: number;
 }
 
+const GITHUB_SPONSORS_URL = 'https://github.com/sponsors/rajnishcoder';
+
 const SUPPORT_TIERS = [
   {
     amount: 5,
@@ -16,7 +18,7 @@ const SUPPORT_TIERS = [
     tagline: 'Thanks! ☕',
     description: 'Buy a coffee for the developer',
     icon: Coffee,
-    url: 'https://storageunleashed.com/support?amount=5'
+    url: 'https://github.com/sponsors/rajnishcoder?frequency=one-time&sponsor=rajnishcoder&amount=5'
   },
   {
     amount: 10,
@@ -25,7 +27,7 @@ const SUPPORT_TIERS = [
     description: 'Really appreciate the support',
     icon: Heart,
     highlight: true,
-    url: 'https://storageunleashed.com/support?amount=10'
+    url: 'https://github.com/sponsors/rajnishcoder?frequency=one-time&sponsor=rajnishcoder&amount=10'
   },
   {
     amount: 20,
@@ -33,7 +35,7 @@ const SUPPORT_TIERS = [
     tagline: 'Fund Future Dev 🚀',
     description: 'Support ongoing updates & tools',
     icon: Rocket,
-    url: 'https://storageunleashed.com/support?amount=20'
+    url: 'https://github.com/sponsors/rajnishcoder?frequency=one-time&sponsor=rajnishcoder&amount=20'
   }
 ];
 
@@ -62,9 +64,7 @@ export const SupportModal: React.FC<SupportModalProps> = ({
 
   const handleCustomSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const val = parseFloat(customAmount);
-    const amount = !isNaN(val) && val > 0 ? val : 15;
-    handleOpenUrl(`https://storageunleashed.com/support?amount=${amount}`);
+    handleOpenUrl(GITHUB_SPONSORS_URL);
   };
 
   const handleDismiss = () => {
@@ -159,9 +159,9 @@ export const SupportModal: React.FC<SupportModalProps> = ({
             <button
               type="button"
               className="btn-custom-amount"
-              onClick={() => setShowCustomInput(true)}
+              onClick={() => handleOpenUrl(GITHUB_SPONSORS_URL)}
             >
-              Choose Custom Amount
+              Choose Custom Amount on GitHub Sponsors →
             </button>
             <span className="footer-action-divider">•</span>
             <button
