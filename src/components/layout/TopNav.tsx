@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, PieChart, Heart } from 'lucide-react';
+import { Search, PieChart, Heart, Rocket } from 'lucide-react';
 import { useStorageStore } from '../../stores/storageStore';
 import { SupportModal } from '../common/SupportModal';
 import './TopNav.css';
@@ -11,7 +11,10 @@ export const TopNav: React.FC = () => {
     setViewMode,
     searchQuery,
     setSearchQuery,
-    platform
+    platform,
+    updateInfo,
+    isUpdateDismissed,
+    setIsUpdateModalOpen
   } = useStorageStore();
 
   return (
@@ -39,6 +42,18 @@ export const TopNav: React.FC = () => {
       </div>
 
       <div className="top-nav-right">
+        {updateInfo?.hasUpdate && !isUpdateDismissed && (
+          <button
+            type="button"
+            className="top-nav-update-btn"
+            onClick={() => setIsUpdateModalOpen(true)}
+            title={`Storage Unleashed v${updateInfo.latestVersion} is available! Click to update.`}
+          >
+            <Rocket size={12} className="rocket-icon-nav" />
+            <span>v{updateInfo.latestVersion} Update</span>
+          </button>
+        )}
+
         <button
           type="button"
           className="top-nav-support-btn"

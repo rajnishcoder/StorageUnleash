@@ -2,6 +2,7 @@ import { app, BrowserWindow, shell } from 'electron';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { registerFilesystemHandlers } from './ipc/filesystemHandlers';
+import { registerUpdateHandlers } from './ipc/updateHandlers';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -40,6 +41,7 @@ function createWindow(): void {
 
   // Register all secure IPC handlers
   registerFilesystemHandlers(mainWindow);
+  registerUpdateHandlers();
 
   // Show window gracefully when ready to avoid blank white flash
   mainWindow.once('ready-to-show', () => {

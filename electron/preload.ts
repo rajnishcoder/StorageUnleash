@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
-import { IPC_CHANNELS, StorageAPI, QuickTarget, DiskSpaceInfo, TrashInfo } from '@shared/types/ipc';
+import { IPC_CHANNELS, StorageAPI, QuickTarget, DiskSpaceInfo, TrashInfo, AppUpdateInfo } from '@shared/types/ipc';
 import type { ScanProgress, ScanResult, ScanError, TrashResult } from '@shared/models/fileNode';
 
 const storageAPI: StorageAPI = {
@@ -49,6 +49,10 @@ const storageAPI: StorageAPI = {
 
   getPlatform: (): Promise<string> => {
     return ipcRenderer.invoke(IPC_CHANNELS.GET_PLATFORM);
+  },
+
+  checkForUpdates: (): Promise<AppUpdateInfo> => {
+    return ipcRenderer.invoke(IPC_CHANNELS.CHECK_FOR_UPDATES);
   },
 
   onScanProgress: (callback: (progress: ScanProgress) => void): (() => void) => {

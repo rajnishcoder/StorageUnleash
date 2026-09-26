@@ -96,7 +96,9 @@ export const Sidebar: React.FC = () => {
     currentDirectory,
     scanResult,
     openTrash,
-    emptyTrash
+    emptyTrash,
+    isCheckingUpdate,
+    checkForUpdates
   } = useStorageStore();
 
   const handleEmptyTrash = (e: React.MouseEvent) => {
@@ -470,7 +472,14 @@ export const Sidebar: React.FC = () => {
 
       <div className="sidebar-footer">
         <div className="sidebar-footer-left">
-          <span className="sidebar-version">v1.0.0</span>
+          <button
+            type="button"
+            className="sidebar-version-btn"
+            onClick={() => checkForUpdates(true)}
+            title="Storage Unleashed v1.0.0 — Click to check for updates"
+          >
+            <span>{isCheckingUpdate ? 'Checking...' : 'v1.0.0'}</span>
+          </button>
           <button
             type="button"
             className="sidebar-feedback-btn"
