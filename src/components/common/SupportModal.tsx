@@ -9,6 +9,7 @@ interface SupportModalProps {
   reclaimedBytes?: number;
 }
 
+const BUY_ME_A_COFFEE_URL = 'https://buymeacoffee.com/rajnishcoder';
 const GITHUB_SPONSORS_URL = 'https://github.com/sponsors/rajnishcoder';
 
 const SUPPORT_TIERS = [
@@ -18,7 +19,7 @@ const SUPPORT_TIERS = [
     tagline: 'Thanks! ☕',
     description: 'Buy a coffee for the developer',
     icon: Coffee,
-    url: 'https://github.com/sponsors/rajnishcoder?frequency=one-time&sponsor=rajnishcoder&amount=5'
+    url: 'https://buymeacoffee.com/rajnishcoder'
   },
   {
     amount: 10,
@@ -27,7 +28,7 @@ const SUPPORT_TIERS = [
     description: 'Really appreciate the support',
     icon: Heart,
     highlight: true,
-    url: 'https://github.com/sponsors/rajnishcoder?frequency=one-time&sponsor=rajnishcoder&amount=10'
+    url: 'https://buymeacoffee.com/rajnishcoder'
   },
   {
     amount: 20,
@@ -35,7 +36,7 @@ const SUPPORT_TIERS = [
     tagline: 'Fund Future Dev 🚀',
     description: 'Support ongoing updates & tools',
     icon: Rocket,
-    url: 'https://github.com/sponsors/rajnishcoder?frequency=one-time&sponsor=rajnishcoder&amount=20'
+    url: 'https://buymeacoffee.com/rajnishcoder'
   }
 ];
 
@@ -159,9 +160,17 @@ export const SupportModal: React.FC<SupportModalProps> = ({
             <button
               type="button"
               className="btn-custom-amount"
+              onClick={() => handleOpenUrl(BUY_ME_A_COFFEE_URL)}
+            >
+              ☕ Buy Me a Coffee
+            </button>
+            <span className="footer-action-divider">•</span>
+            <button
+              type="button"
+              className="btn-custom-amount"
               onClick={() => handleOpenUrl(GITHUB_SPONSORS_URL)}
             >
-              Choose Custom Amount on GitHub Sponsors →
+              ❤️ GitHub Sponsors
             </button>
             <span className="footer-action-divider">•</span>
             <button
