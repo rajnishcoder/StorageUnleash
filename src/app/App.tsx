@@ -5,6 +5,7 @@ import { Sidebar } from '../components/layout/Sidebar';
 import { HomePage } from '../pages/Home/HomePage';
 import { ScanningView } from '../components/scanner/ScanningView';
 import { StoragePage } from '../pages/Storage/StoragePage';
+import { UpdateModal } from '../components/common/UpdateModal';
 import './App.css';
 
 export const App: React.FC = () => {
@@ -33,6 +34,7 @@ export const App: React.FC = () => {
           {(scanStatus === 'idle' || scanStatus === 'cancelled' || scanStatus === 'error') && <HomePage />}
         </main>
       </div>
+      <UpdateModal />
     </div>
   );
 };

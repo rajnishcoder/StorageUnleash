@@ -21,6 +21,17 @@ export interface TrashInfo {
   totalSize: number;
 }
 
+export interface AppUpdateInfo {
+  hasUpdate: boolean;
+  currentVersion: string;
+  latestVersion: string;
+  releaseName?: string;
+  releaseNotes?: string;
+  releaseDate?: string;
+  downloadUrl: string;
+  releaseUrl: string;
+}
+
 /**
  * IPC channel names constants.
  */
@@ -47,8 +58,9 @@ export const IPC_CHANNELS = {
   MOVE_TO_TRASH: 'storage:move-to-trash',
   OPEN_EXTERNAL_URL: 'storage:open-external-url',
   
-  // System metadata
-  GET_PLATFORM: 'storage:get-platform'
+  // System metadata & updates
+  GET_PLATFORM: 'storage:get-platform',
+  CHECK_FOR_UPDATES: 'storage:check-for-updates'
 } as const;
 
 export type IPCChannelName = typeof IPC_CHANNELS[keyof typeof IPC_CHANNELS];
@@ -69,6 +81,7 @@ export interface StorageAPI {
   moveToTrash(paths: string[]): Promise<TrashResult>;
   openExternalUrl(url: string): Promise<void>;
   getPlatform(): Promise<string>;
+  checkForUpdates(): Promise<AppUpdateInfo>;
   onScanProgress(callback: (progress: ScanProgress) => void): () => void;
   onScanComplete(callback: (result: ScanResult) => void): () => void;
   onScanError(callback: (error: ScanError) => void): () => void;

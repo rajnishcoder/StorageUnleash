@@ -160,3 +160,49 @@
   transform: scale(1.18);
 }
 
+.top-nav-update-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  line-height: 1;
+  -webkit-app-region: no-drag;
+  animation: updateGlow 2.5s infinite ease-in-out;
+}
+
+@keyframes updateGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 rgba(56, 189, 248, 0);
+  }
+  50% {
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
+    border-color: rgba(56, 189, 248, 0.6);
+  }
+}
+
+.top-nav-update-btn:hover {
+  background: rgba(56, 189, 248, 0.22);
+  border-color: #38bdf8;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.rocket-icon-nav {
+  color: #38bdf8;
+  animation: rocketWiggle 2s infinite ease-in-out;
+}
+
+@keyframes rocketWiggle {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-1px) rotate(4deg); }
+}
+
+

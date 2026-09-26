@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { FileNode, ScanProgress, ScanResult, ScanError } from '@shared/models/fileNode';
-import type { QuickTarget, DiskSpaceInfo, TrashInfo } from '@shared/types/ipc';
+import type { QuickTarget, DiskSpaceInfo, TrashInfo, AppUpdateInfo } from '@shared/types/ipc';
 
 export type ScanStatus = 'idle' | 'scanning' | 'preparing' | 'completed' | 'cancelled' | 'error';
 export type ViewMode = 'treemap' | 'sunburst' | 'list';
@@ -24,6 +24,12 @@ export interface StorageState {
   diskSpace: DiskSpaceInfo | null;
   trashInfo: TrashInfo | null;
   platform: string;
+
+  // App Update State
+  updateInfo: AppUpdateInfo | null;
+  isCheckingUpdate: boolean;
+  isUpdateDismissed: boolean;
+  isUpdateModalOpen: boolean;
 
   // Search & Dev Bloat Filters
   searchQuery: string;
@@ -56,6 +62,9 @@ export interface StorageState {
   refreshTrashInfo: () => Promise<void>;
   emptyTrash: () => Promise<boolean>;
   openTrash: () => Promise<void>;
+  checkForUpdates: (manual?: boolean) => Promise<AppUpdateInfo | null>;
+  setIsUpdateModalOpen: (open: boolean) => void;
+  dismissUpdate: () => void;
 }
 
 export const useStorageStore = create<StorageState>((set, get) => {
@@ -106,6 +115,11 @@ export const useStorageStore = create<StorageState>((set, get) => {
     trashInfo: null,
     platform: 'desktop',
 
+    updateInfo: null,
+    isCheckingUpdate: false,
+    isUpdateDismissed: false,
+    isUpdateModalOpen: false,
+
     searchQuery: '',
     devFilters: {},
     cleanupList: [],
@@ -126,6 +140,11 @@ export const useStorageStore = create<StorageState>((set, get) => {
             diskSpace: disk,
             trashInfo: trash
           });
+
+          // Check for updates in background after startup
+          setTimeout(() => {
+            get().checkForUpdates(false);
+          }, 1200);
         } catch (error) {
           console.error('Failed to init storage store:', error);
         }
@@ -446,6 +465,33 @@ export const useStorageStore = create<StorageState>((set, get) => {
           console.error('Failed to open trash:', err);
         }
       }
+    },
+
+    checkForUpdates: async (manual = false) => {
+      if (typeof window !== 'undefined' && window.storageAPI?.checkForUpdates) {
+        set({ isCheckingUpdate: true });
+        try {
+          const info = await window.storageAPI.checkForUpdates();
+          set({
+            updateInfo: info,
+            isCheckingUpdate: false,
+            isUpdateModalOpen: manual || (info.hasUpdate && !get().isUpdateDismissed)
+          });
+          return info;
+        } catch (err) {
+          console.error('Failed to check for updates:', err);
+          set({ isCheckingUpdate: false });
+        }
+      }
+      return null;
+    },
+
+    setIsUpdateModalOpen: (open: boolean) => {
+      set({ isUpdateModalOpen: open });
+    },
+
+    dismissUpdate: () => {
+      set({ isUpdateDismissed: true, isUpdateModalOpen: false });
     }
   };
 });
