@@ -118,7 +118,7 @@ export const Sidebar: React.FC = () => {
   };
 
   const handleOpenFeedback = () => {
-    const url = 'https://github.com/rajnishcoder/StorageUnleash/issues';
+    const url = 'https://github.com/rajnishcoder/StorageUnleash/issues/new?title=%5BFeedback%5D+';
     if (window.storageAPI?.openExternalUrl) {
       window.storageAPI.openExternalUrl(url).catch(() => window.open(url, '_blank'));
     } else {
