@@ -1,9 +1,11 @@
-import React from 'react';
-import { Search, PieChart } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, PieChart, Heart } from 'lucide-react';
 import { useStorageStore } from '../../stores/storageStore';
+import { SupportModal } from '../common/SupportModal';
 import './TopNav.css';
 
 export const TopNav: React.FC = () => {
+  const [isSupportOpen, setIsSupportOpen] = useState(false);
   const {
     viewMode,
     setViewMode,
@@ -37,6 +39,16 @@ export const TopNav: React.FC = () => {
       </div>
 
       <div className="top-nav-right">
+        <button
+          type="button"
+          className="top-nav-support-btn"
+          onClick={() => setIsSupportOpen(true)}
+          title="Support Storage Unleashed"
+        >
+          <Heart size={13} className="heart-icon-nav" />
+          <span>Support</span>
+        </button>
+
         <div className="nav-view-pills">
           <button
             type="button"
@@ -61,6 +73,11 @@ export const TopNav: React.FC = () => {
           </button>
         </div>
       </div>
+
+      <SupportModal
+        isOpen={isSupportOpen}
+        onClose={() => setIsSupportOpen(false)}
+      />
     </header>
   );
 };

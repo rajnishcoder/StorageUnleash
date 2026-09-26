@@ -124,3 +124,39 @@
   color: #f8fafc;
   font-weight: 600;
 }
+
+.top-nav-support-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fda4af;
+  background: rgba(244, 63, 94, 0.12);
+  border: 1px solid rgba(244, 63, 94, 0.28);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  line-height: 1;
+  -webkit-app-region: no-drag;
+}
+
+.top-nav-support-btn:hover {
+  background: rgba(244, 63, 94, 0.22);
+  border-color: rgba(244, 63, 94, 0.5);
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(244, 63, 94, 0.25);
+  transform: translateY(-1px);
+}
+
+.heart-icon-nav {
+  color: #f43f5e;
+  fill: #f43f5e;
+  transition: transform var(--transition-fast);
+}
+
+.top-nav-support-btn:hover .heart-icon-nav {
+  transform: scale(1.18);
+}
+

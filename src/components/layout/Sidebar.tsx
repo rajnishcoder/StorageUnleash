@@ -470,7 +470,7 @@ export const Sidebar: React.FC = () => {
 
       <div className="sidebar-footer">
         <div className="sidebar-footer-left">
-          <span className="sidebar-version">v0.1.0</span>
+          <span className="sidebar-version">v1.0.0</span>
           <button
             type="button"
             className="sidebar-feedback-btn"

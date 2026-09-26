@@ -43,7 +43,7 @@ export const HomePage: React.FC = () => {
     <div className="home-container">
       <div className="home-badge">
         <span className="home-badge-dot" />
-        <span>Storage Analyzer v0.1.0</span>
+        <span>Storage Analyzer v1.0.0</span>
       </div>
 
       <h1 className="home-title">StorageUnleash</h1>

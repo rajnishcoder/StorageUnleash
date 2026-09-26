@@ -1,6 +1,15 @@
 # StorageUnleash 🚀
 
-A fast, modern, visual desktop storage analyzer for **macOS** and **Windows**. Understand and explore what is consuming storage on your computer through intuitive treemaps and interactive drill-downs.
+A fast, modern, visual desktop storage analyzer crafted specifically for **macOS** (Apple Silicon & Intel). Understand, explore, and reclaim what is consuming storage on your Mac through intuitive treemaps, radial sunburst charts, and 1-click cleanup workflows.
+
+---
+
+## ✨ Key Features
+
+- **⚡ Blazing Fast Asynchronous Scanner**: Concurrent filesystem traversal without freezing the UI.
+- **🗺️ Interactive Treemap & Sunburst Views**: Spot disk hogs instantly by category (Videos, Developer Caches, Disk Images, Archives, Photos, Audio).
+- **🧹 Safe Batch Cleanup**: Review items in a queue before moving them safely to macOS Trash.
+- **🔒 100% Local & Private**: No analytics, no accounts, zero telemetry, and complete offline capability.
 
 ---
 
@@ -10,13 +19,14 @@ A fast, modern, visual desktop storage analyzer for **macOS** and **Windows**. U
 - **Desktop**: Electron 35 with strict security (`contextIsolation: true`, `nodeIntegration: false`, preload bridge).
 - **State Management**: Zustand.
 - **Testing**: Vitest.
-- **Core Architecture**: Decoupled `shared/` core ready for desktop and future React Native clients.
+- **Core Architecture**: Decoupled `shared/` core ready for desktop and future clients.
 
 ---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
+- macOS 12 (Monterey) through macOS 15+ (Sequoia)
 - Node.js >= 18 (Node 22 or 24 recommended)
 - npm >= 9
 
@@ -44,10 +54,14 @@ npm run typecheck
 npm run test
 ```
 
-### Production Build
+### Packaging & macOS DMG Build
 
 ```bash
-npm run build
+# Build production bundle and package macOS DMG installer (Apple Silicon & Intel)
+npm run dist
+
+# Or package exclusively for Apple Silicon (M1/M2/M3/M4)
+npm run dist:arm64
 ```
 
 ---
@@ -68,7 +82,7 @@ StorageUnleash/
 │   ├── preload.ts            # Secure contextBridge API exposer
 │   ├── ipc/                  # Typed IPC handler implementations
 │   ├── filesystem/           # Native filesystem scanning & operations
-│   └── platform/             # macOS & Windows native integrations
+│   └── platform/             # macOS native integrations
 │
 ├── shared/                   # Decoupled TypeScript business logic
 │   ├── models/               # FileNode, ScanProgress, ScanResult data models
@@ -79,10 +93,6 @@ StorageUnleash/
 │   └── unit/                 # Unit tests for shared logic
 │
 └── docs/                     # Architecture & design documents
-    ├── architecture.md       # Overall architecture & security model
-    ├── filesystem-scanner.md # Scanner design & performance strategies
-    ├── ipc.md                # IPC channel specifications
-    └── platform-notes.md     # macOS and Windows considerations
 ```
 
 ---
@@ -93,3 +103,4 @@ StorageUnleash/
 - **Node Integration**: Disabled in renderer (`nodeIntegration: false`).
 - **Controlled Preload Bridge**: Renderer interacts only via explicit, typed `window.storageAPI` methods.
 - **Privacy First**: Completely local; zero network analytics or telemetry.
+
