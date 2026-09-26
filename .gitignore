@@ -6,7 +6,6 @@ node_modules
 # Build artifacts
 dist
 dist-electron
-build
 release
 *.dmg
 *.blockmap
