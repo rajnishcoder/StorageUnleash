@@ -7,6 +7,7 @@ import { LargestFilesView } from '../../components/storage/LargestFilesView';
 import { ConfirmModal } from '../../components/common/ConfirmModal';
 import { ContextMenu } from '../../components/common/ContextMenu';
 import { CleanupListModal } from '../../components/storage/CleanupListModal';
+import { PermissionDeniedView } from '../../components/common/PermissionDeniedView';
 import { SupportModal } from '../../components/common/SupportModal';
 import { formatBytes, formatNumber } from '@shared/utils/formatters';
 import { ExternalLink, Trash2, X, Folder, File, Layers, Check } from 'lucide-react';
@@ -16,6 +17,8 @@ import './StoragePage.css';
 export const StoragePage: React.FC = () => {
   const {
     viewMode,
+    currentDirectory,
+    rescan,
     selectedNode,
     selectNode,
     removePathFromTree,
@@ -126,7 +129,9 @@ export const StoragePage: React.FC = () => {
 
       <div className="storage-content-layout">
         <div className="storage-main-view">
-          {viewMode === 'list' ? (
+          {currentDirectory?.permissionDenied || !currentDirectory || !currentDirectory.children || currentDirectory.children.length === 0 ? (
+            <PermissionDeniedView directory={currentDirectory} onRescan={rescan} />
+          ) : viewMode === 'list' ? (
             <LargestFilesView
               onTrashRequest={(node) => setTrashCandidate(node)}
               onContextMenu={handleContextMenu}

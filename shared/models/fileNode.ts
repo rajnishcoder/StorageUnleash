@@ -17,6 +17,8 @@ export interface FileNode {
   children?: FileNode[];
   fileCount?: number;
   directoryCount?: number;
+  permissionDenied?: boolean;
+  errorCode?: string;
 }
 
 export interface ScanProgress {
@@ -40,6 +42,7 @@ export interface ScanResult {
   totalDirectories: number;
   durationMs: number;
   errors: ScanError[];
+  hasPermissionError?: boolean;
 }
 
 export interface TrashItemResult {

@@ -47,6 +47,10 @@ const storageAPI: StorageAPI = {
     return ipcRenderer.invoke(IPC_CHANNELS.OPEN_EXTERNAL_URL, url);
   },
 
+  openSystemPrivacySettings: (target?: string): Promise<void> => {
+    return ipcRenderer.invoke(IPC_CHANNELS.OPEN_SYSTEM_PRIVACY_SETTINGS, target);
+  },
+
   getPlatform: (): Promise<string> => {
     return ipcRenderer.invoke(IPC_CHANNELS.GET_PLATFORM);
   },

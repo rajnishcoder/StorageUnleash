@@ -60,7 +60,8 @@ export const IPC_CHANNELS = {
   
   // System metadata & updates
   GET_PLATFORM: 'storage:get-platform',
-  CHECK_FOR_UPDATES: 'storage:check-for-updates'
+  CHECK_FOR_UPDATES: 'storage:check-for-updates',
+  OPEN_SYSTEM_PRIVACY_SETTINGS: 'storage:open-system-privacy-settings'
 } as const;
 
 export type IPCChannelName = typeof IPC_CHANNELS[keyof typeof IPC_CHANNELS];
@@ -80,6 +81,7 @@ export interface StorageAPI {
   revealInFileManager(path: string): Promise<void>;
   moveToTrash(paths: string[]): Promise<TrashResult>;
   openExternalUrl(url: string): Promise<void>;
+  openSystemPrivacySettings(target?: string): Promise<void>;
   getPlatform(): Promise<string>;
   checkForUpdates(): Promise<AppUpdateInfo>;
   onScanProgress(callback: (progress: ScanProgress) => void): () => void;

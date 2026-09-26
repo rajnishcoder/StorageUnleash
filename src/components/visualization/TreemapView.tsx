@@ -4,7 +4,7 @@ import { computeHierarchicalTreemap, TreemapRect } from '@shared/analyzer/treema
 import { categorizeFile, CATEGORY_COLORS } from '@shared/analyzer/categorizer';
 import { isNodeHighlighted } from '@shared/analyzer/filterMatcher';
 import { formatBytes } from '@shared/utils/formatters';
-import { Layers } from 'lucide-react';
+import { Layers, Settings } from 'lucide-react';
 import type { FileNode } from '@shared/models/fileNode';
 import './TreemapView.css';
 
@@ -101,7 +101,8 @@ export const TreemapView: React.FC<TreemapViewProps> = ({ onContextMenu }) => {
     drillDown,
     selectNode,
     devFilters,
-    searchQuery
+    searchQuery,
+    platform
   } = useStorageStore();
 
   useEffect(() => {
@@ -351,11 +352,39 @@ export const TreemapView: React.FC<TreemapViewProps> = ({ onContextMenu }) => {
   };
 
   if (!currentDirectory || !currentDirectory.children || currentDirectory.children.length === 0) {
+    const isMac = platform === 'darwin';
     return (
       <div className="treemap-container">
         <div className="treemap-empty-state">
           <Layers size={36} style={{ opacity: 0.4 }} />
           <span>This folder is empty or contains 0 bytes.</span>
+          {isMac && (
+            <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+              <span style={{ fontSize: '12.5px', color: '#94a3b8', maxWidth: '380px', lineHeight: 1.4 }}>
+                If this folder contains files, macOS Privacy & Security may be restricting access.
+              </span>
+              <button
+                type="button"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '7px',
+                  background: 'rgba(245, 158, 11, 0.15)',
+                  border: '1px solid rgba(245, 158, 11, 0.35)',
+                  color: '#fbbf24',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  padding: '7px 16px',
+                  borderRadius: '8px',
+                  cursor: 'pointer'
+                }}
+                onClick={() => window.storageAPI?.openSystemPrivacySettings?.()}
+              >
+                <Settings size={13} />
+                <span>Open Privacy Settings</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
     );
