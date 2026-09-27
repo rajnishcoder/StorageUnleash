@@ -1,4 +1,4 @@
-# StorageUnleash 🚀
+# Storage Unleashed 🚀
 
 [![Website](https://img.shields.io/badge/Website-storageunleashed.com-0284c7?style=flat-square&logo=globe)](https://www.storageunleashed.com)
 [![GitHub Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-ea4aaa?style=flat-square&logo=githubsponsors&logoColor=white)](https://github.com/sponsors/rajnishcoder)
@@ -46,10 +46,10 @@ brew upgrade storageunleashed
 ### Option 2: Download DMG Installer (.dmg)
 
 1. Download the latest `.dmg` from [storageunleashed.com](https://www.storageunleashed.com) or [GitHub Releases](https://github.com/rajnishcoder/StorageUnleashed/releases/latest).
-2. Open the DMG and drag **StorageUnleash** into your **Applications** folder.
+2. Open the DMG and drag **StorageUnleashed** into your **Applications** folder.
 3. **Important before opening**: Run this command in Terminal to clear macOS Gatekeeper's quarantine attribute:
    ```bash
-   xattr -cr /Applications/StorageUnleash.app
+   xattr -cr /Applications/StorageUnleashed.app
    ```
 
 ---
@@ -98,7 +98,7 @@ npm run dist:arm64
 ## 📂 Project Structure
 
 ```
-StorageUnleash/
+StorageUnleashed/
 ├── src/                      # React Renderer process
 │   ├── app/                  # Root application components and global styling
 │   ├── components/           # UI components (common, layout, storage, visualization)
@@ -137,7 +137,7 @@ StorageUnleash/
 
 ## 💖 Support & Sponsoring
 
-StorageUnleash is 100% free, privacy-first, and open-source software. If you find it useful for analyzing disk space and keeping your Mac clean, consider supporting its continuous maintenance and feature development:
+Storage Unleashed is 100% free, privacy-first, and open-source software. If you find it useful for analyzing disk space and keeping your Mac clean, consider supporting its continuous maintenance and feature development:
 
 - 💖 **GitHub Sponsors**: [github.com/sponsors/rajnishcoder](https://github.com/sponsors/rajnishcoder)
 - ☕ **Buy Me a Coffee**: [buymeacoffee.com/rajnishcoder](https://buymeacoffee.com/rajnishcoder)
