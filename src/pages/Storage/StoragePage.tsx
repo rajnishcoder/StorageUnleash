@@ -10,7 +10,7 @@ import { CleanupListModal } from '../../components/storage/CleanupListModal';
 import { PermissionDeniedView } from '../../components/common/PermissionDeniedView';
 import { SupportModal } from '../../components/common/SupportModal';
 import { formatBytes, formatNumber } from '@shared/utils/formatters';
-import { ExternalLink, Trash2, X, Folder, File, Layers, Check } from 'lucide-react';
+import { ExternalLink, Trash2, X, Folder, File, Layers, Check, ShieldAlert, Settings } from 'lucide-react';
 import type { FileNode } from '@shared/models/fileNode';
 import './StoragePage.css';
 
@@ -18,6 +18,7 @@ export const StoragePage: React.FC = () => {
   const {
     viewMode,
     currentDirectory,
+    scanResult,
     rescan,
     selectedNode,
     selectNode,
@@ -32,6 +33,7 @@ export const StoragePage: React.FC = () => {
   const [contextMenuTarget, setContextMenuTarget] = useState<{ node: FileNode; x: number; y: number } | null>(null);
   const [isCleanupModalOpen, setIsCleanupModalOpen] = useState(false);
   const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
+  const [isDismissedFdaBanner, setIsDismissedFdaBanner] = useState(false);
   const [reclaimedBytes, setReclaimedBytes] = useState(0);
 
   const checkAndPromptSupport = (freedSize: number) => {
@@ -127,9 +129,39 @@ export const StoragePage: React.FC = () => {
     <div className="storage-page-container">
       <Breadcrumbs />
 
+      {/* macOS Full Disk Access info banner for partial permission skips */}
+      {platform === 'darwin' && scanResult?.hasPermissionError && !isDismissedFdaBanner && (
+        <div className="fda-notice-banner">
+          <div className="fda-notice-text">
+            <ShieldAlert size={15} className="fda-notice-icon" />
+            <span>
+              <strong>Full Disk Access recommended:</strong> Some protected system folders or app containers were skipped by macOS. Enable Full Disk Access with one click to see 100% of your disk.
+            </span>
+          </div>
+          <div className="fda-notice-actions">
+            <button
+              type="button"
+              className="fda-notice-btn"
+              onClick={() => window.storageAPI?.openSystemPrivacySettings?.('full-disk')}
+            >
+              <Settings size={13} />
+              <span>Open Full Disk Access</span>
+            </button>
+            <button
+              type="button"
+              className="fda-notice-close"
+              onClick={() => setIsDismissedFdaBanner(true)}
+              title="Dismiss banner"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="storage-content-layout">
         <div className="storage-main-view">
-          {currentDirectory?.permissionDenied || !currentDirectory || !currentDirectory.children || currentDirectory.children.length === 0 ? (
+          {currentDirectory?.permissionDenied && (!currentDirectory.children || currentDirectory.children.length === 0) ? (
             <PermissionDeniedView directory={currentDirectory} onRescan={rescan} />
           ) : viewMode === 'list' ? (
             <LargestFilesView

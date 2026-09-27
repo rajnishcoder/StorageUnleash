@@ -51,11 +51,22 @@ export class FilesystemScanner {
     const normalizedRoot = path.resolve(rootPath);
     const rootNode = await this.scanDirectory(normalizedRoot, path.basename(normalizedRoot) || normalizedRoot);
 
-    // If root failed with permission error or is restricted protected folder returning 0 items on macOS
-    const hasPermError = this.errors.some((e) => e.code === 'EPERM' || e.code === 'EACCES' || e.path === normalizedRoot);
-    if (rootNode.permissionDenied || hasPermError || (isMacOSProtectedDir(normalizedRoot) && (!rootNode.children || rootNode.children.length === 0))) {
+    // Check if the root directory itself had a direct permission error
+    const rootHasDirectError = this.errors.some(
+      (e) => e.path === normalizedRoot && (e.code === 'EPERM' || e.code === 'EACCES')
+    );
+    const hasAnyPermError = this.errors.some(
+      (e) => e.code === 'EPERM' || e.code === 'EACCES'
+    );
+
+    // Only flag the root node as permissionDenied if it has NO accessible children AND was blocked
+    const hasNoChildren = !rootNode.children || rootNode.children.length === 0;
+    if (hasNoChildren && (rootNode.permissionDenied || rootHasDirectError || (isMacOSProtectedDir(normalizedRoot) && this.errors.length > 0))) {
       rootNode.permissionDenied = true;
       rootNode.errorCode = rootNode.errorCode || 'EPERM';
+    } else {
+      // If root has children / size > 0, it successfully scanned
+      rootNode.permissionDenied = false;
     }
 
     // Final progress emission
@@ -76,7 +87,7 @@ export class FilesystemScanner {
       totalDirectories: rootNode.directoryCount || this.directoriesScanned,
       durationMs: Date.now() - startTime,
       errors: this.errors,
-      hasPermissionError: hasPermError || rootNode.permissionDenied
+      hasPermissionError: hasAnyPermError || rootNode.permissionDenied
     };
   }
 

@@ -18,14 +18,12 @@ export const PermissionDeniedView: React.FC<PermissionDeniedViewProps> = ({
   const handleOpenPrivacySettings = async () => {
     if (window.storageAPI?.openSystemPrivacySettings) {
       try {
-        await window.storageAPI.openSystemPrivacySettings('files-and-folders');
+        await window.storageAPI.openSystemPrivacySettings('full-disk');
       } catch (err) {
         console.error('Failed to open Privacy settings:', err);
       }
     }
   };
-
-  const isFullDisk = folderPath === '/' || folderPath.toLowerCase().includes('macintosh') || folderName.toLowerCase().includes('full');
 
   return (
     <div className="permission-denied-container">
@@ -44,7 +42,7 @@ export const PermissionDeniedView: React.FC<PermissionDeniedViewProps> = ({
         </h2>
 
         <p className="permission-desc">
-          This folder currently appears empty (0 B). If you have files in <strong>"{folderName}"</strong>, macOS is restricting access until permission is enabled in System Settings.
+          macOS requires <strong>Full Disk Access</strong> to scan protected user directories and app caches. Enabling Full Disk Access grants access in a single master switch, avoiding dozens of individual folder prompts.
         </p>
 
         {folderPath && (
@@ -57,13 +55,13 @@ export const PermissionDeniedView: React.FC<PermissionDeniedViewProps> = ({
           <div className="permission-step-item">
             <span className="step-num">1</span>
             <span className="step-text">
-              Click <strong>"Open System Settings"</strong> below.
+              Click <strong>"Open Full Disk Access Settings"</strong> below.
             </span>
           </div>
           <div className="permission-step-item">
             <span className="step-num">2</span>
             <span className="step-text">
-              Under <strong>{isFullDisk ? 'Full Disk Access' : 'Files and Folders'}</strong>, toggle <strong>StorageUnleash</strong> (or <strong>Electron</strong>) to <strong>ON</strong>.
+              Under <strong>Full Disk Access</strong>, toggle <strong>StorageUnleash</strong> to <strong>ON</strong> (or click <strong>+</strong> to add it).
             </span>
           </div>
           <div className="permission-step-item">
@@ -74,6 +72,10 @@ export const PermissionDeniedView: React.FC<PermissionDeniedViewProps> = ({
           </div>
         </div>
 
+        <div className="permission-tip-box">
+          💡 <strong>Tip:</strong> Full Disk Access grants complete read permission across all macOS containers with <strong>1 single toggle</strong> instead of manually clicking individual folder switches.
+        </div>
+
         <div className="permission-actions-row">
           <button
             type="button"
@@ -81,7 +83,7 @@ export const PermissionDeniedView: React.FC<PermissionDeniedViewProps> = ({
             onClick={handleOpenPrivacySettings}
           >
             <Settings size={16} />
-            <span>Open System Settings</span>
+            <span>Open Full Disk Access</span>
             <ExternalLink size={13} style={{ opacity: 0.7 }} />
           </button>
 
