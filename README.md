@@ -35,17 +35,17 @@ A fast, modern, visual desktop storage analyzer crafted specifically for **macOS
 ### Option 1: Install via Homebrew 🍺 (Recommended)
 
 ```bash
-brew install rajnishcoder/tap/storageunleash
+brew install rajnishcoder/tap/storageunleashed
 ```
 
 To upgrade later:
 ```bash
-brew upgrade storageunleash
+brew upgrade storageunleashed
 ```
 
 ### Option 2: Download DMG Installer (.dmg)
 
-1. Download the latest `.dmg` from [storageunleashed.com](https://www.storageunleashed.com) or [GitHub Releases](https://github.com/rajnishcoder/StorageUnleash/releases/latest).
+1. Download the latest `.dmg` from [storageunleashed.com](https://www.storageunleashed.com) or [GitHub Releases](https://github.com/rajnishcoder/StorageUnleashed/releases/latest).
 2. Open the DMG and drag **StorageUnleash** into your **Applications** folder.
 3. **Important before opening**: Run this command in Terminal to clear macOS Gatekeeper's quarantine attribute:
    ```bash
