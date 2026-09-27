@@ -1,7 +1,7 @@
 {
   "name": "storage-unleash",
   "productName": "StorageUnleash",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "description": "Fast, modern, visual desktop storage analyzer for macOS.",
   "main": "dist-electron/main.js",

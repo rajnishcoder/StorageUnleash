@@ -1,5 +1,5 @@
 .sidebar {
-  width: 250px;
+  width: 260px;
   background-color: #0f141f;
   border-right: 1px solid rgba(255, 255, 255, 0.07);
   display: flex;
@@ -225,43 +225,45 @@
   font-weight: 600;
 }
 
-/* Trash Row */
-.trash-row {
+/* Trash Card */
+.trash-card {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 10px;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 8px;
-  font-size: 12px;
-  gap: 8px;
+  border-radius: 10px;
+  cursor: pointer;
   transition: all var(--transition-fast);
 }
 
-.trash-row:hover {
+.trash-card:hover {
   background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
-.trash-left {
+.trash-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.trash-title-group {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #cbd5e1;
-  cursor: pointer;
   min-width: 0;
-  flex: 1;
-  transition: color var(--transition-fast);
 }
 
-.trash-left:hover .trash-title {
+.trash-card:hover .trash-title {
   color: #38bdf8;
 }
 
 .trash-icon-wrap {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: 6px;
   background: rgba(245, 158, 11, 0.12);
   display: flex;
@@ -270,51 +272,19 @@
   flex-shrink: 0;
 }
 
-.trash-text-group {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-  flex: 1;
-}
-
-.trash-title-line {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-}
-
 .trash-title {
   font-size: 12px;
   font-weight: 600;
   color: #f1f5f9;
+  letter-spacing: 0.2px;
   white-space: nowrap;
   transition: color var(--transition-fast);
-}
-
-.trash-subtitle {
-  font-size: 11px;
-  color: #94a3b8;
-  white-space: nowrap;
-}
-
-.trash-size-badge {
-  font-size: 10px;
-  font-weight: 600;
-  color: #f59e0b;
-  background: rgba(245, 158, 11, 0.15);
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  padding: 0px 5px;
-  border-radius: 4px;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
 }
 
 .trash-actions-group {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   flex-shrink: 0;
 }
 
@@ -330,6 +300,7 @@
   justify-content: center;
   cursor: pointer;
   padding: 0;
+  flex-shrink: 0;
   transition: all var(--transition-fast);
 }
 
@@ -359,7 +330,7 @@
   color: #fb7185;
   font-size: 11px;
   font-weight: 600;
-  padding: 4px 9px;
+  padding: 3px 8px;
   border-radius: 6px;
   cursor: pointer;
   flex-shrink: 0;
@@ -372,6 +343,41 @@
   border-color: #f43f5e;
   color: #ffffff;
   transform: translateY(-1px);
+}
+
+.trash-card-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.trash-stat-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  width: 100%;
+  gap: 8px;
+}
+
+.trash-size-val {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #f59e0b;
+  font-variant-numeric: tabular-nums;
+}
+
+.trash-count-val {
+  font-size: 11px;
+  font-weight: 500;
+  color: #94a3b8;
+}
+
+.trash-stat-row.empty .trash-empty-val {
+  font-size: 11px;
+  font-weight: 500;
+  color: #64748b;
 }
 
 /* Dev Bloat Checklist */

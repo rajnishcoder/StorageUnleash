@@ -19,7 +19,9 @@ describe('compareSemver', () => {
   it('determines if a version is newer', () => {
     expect(isNewerVersion('1.0.1', '1.0.0')).toBe(true);
     expect(isNewerVersion('v1.1.0', '1.0.0')).toBe(true);
-    expect(isNewerVersion('1.0.0', '1.0.0')).toBe(false);
+    expect(isNewerVersion('1.1.1', '1.1.0')).toBe(true);
+    expect(isNewerVersion('1.1.0', '1.1.0')).toBe(false);
+    expect(isNewerVersion('1.0.0', '1.1.0')).toBe(false);
     expect(isNewerVersion('0.9.9', '1.0.0')).toBe(false);
   });
 });

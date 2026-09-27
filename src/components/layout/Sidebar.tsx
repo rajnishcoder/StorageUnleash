@@ -100,6 +100,7 @@ export const Sidebar: React.FC = () => {
     openTrash,
     emptyTrash,
     refreshTrashInfo,
+    updateInfo,
     isCheckingUpdate,
     checkForUpdates
   } = useStorageStore();
@@ -338,55 +339,58 @@ export const Sidebar: React.FC = () => {
         )}
 
         {/* Trash Monitor */}
-        <div className="trash-row">
-          <div
-            className="trash-left"
-            onClick={() => {
-              openTrash();
-              setTimeout(() => refreshTrashInfo(), 1000);
-            }}
-            title={`Click to reveal ${platform === 'darwin' ? 'Trash in Finder' : 'Recycle Bin'}`}
-          >
-            <div className="trash-icon-wrap">
-              <Trash2 size={15} color="#f59e0b" />
-            </div>
-            <div className="trash-text-group">
-              <div className="trash-title-line">
-                <span className="trash-title">{platform === 'darwin' ? 'Trash' : 'Recycle Bin'}</span>
-                {trashInfo && trashInfo.totalSize > 0 && (
-                  <span className="trash-size-badge" title="Total storage occupied by Trash">
-                    {formatBytes(trashInfo.totalSize, 1)}
-                  </span>
-                )}
+        <div
+          className="trash-card"
+          onClick={() => {
+            openTrash();
+            setTimeout(() => refreshTrashInfo(), 1000);
+          }}
+          title={`Click to reveal ${platform === 'darwin' ? 'Trash in Finder' : 'Recycle Bin'}`}
+        >
+          <div className="trash-card-header">
+            <div className="trash-title-group">
+              <div className="trash-icon-wrap">
+                <Trash2 size={14} color="#f59e0b" />
               </div>
-              <span className="trash-subtitle">
-                {trashInfo && trashInfo.itemCount > 0
-                  ? `${trashInfo.itemCount.toLocaleString()} ${trashInfo.itemCount === 1 ? 'item' : 'items'} (${formatBytes(trashInfo.totalSize || 0, 1)})`
-                  : '0 items (Empty)'}
-              </span>
+              <span className="trash-title">{platform === 'darwin' ? 'Trash' : 'Recycle Bin'}</span>
+            </div>
+
+            <div className="trash-actions-group">
+              <button
+                type="button"
+                className={`trash-refresh-btn ${isRefreshingTrash ? 'spinning' : ''}`}
+                onClick={handleRefreshTrash}
+                title="Refresh Trash size & count"
+                disabled={isRefreshingTrash}
+              >
+                <RefreshCw size={12} />
+              </button>
+
+              {(trashInfo?.itemCount || 0) > 0 && (
+                <button
+                  type="button"
+                  className="trash-action-btn"
+                  onClick={handleEmptyTrash}
+                  title={`Permanently empty ${platform === 'darwin' ? 'Trash' : 'Recycle Bin'}`}
+                >
+                  Empty
+                </button>
+              )}
             </div>
           </div>
 
-          <div className="trash-actions-group">
-            <button
-              type="button"
-              className={`trash-refresh-btn ${isRefreshingTrash ? 'spinning' : ''}`}
-              onClick={handleRefreshTrash}
-              title="Refresh Trash size & count"
-              disabled={isRefreshingTrash}
-            >
-              <RefreshCw size={12} />
-            </button>
-
-            {(trashInfo?.itemCount || 0) > 0 && (
-              <button
-                type="button"
-                className="trash-action-btn"
-                onClick={handleEmptyTrash}
-                title={`Permanently empty ${platform === 'darwin' ? 'Trash' : 'Recycle Bin'}`}
-              >
-                Empty
-              </button>
+          <div className="trash-card-body">
+            {trashInfo && trashInfo.itemCount > 0 ? (
+              <div className="trash-stat-row">
+                <span className="trash-size-val">{formatBytes(trashInfo.totalSize || 0, 1)}</span>
+                <span className="trash-count-val">
+                  {trashInfo.itemCount.toLocaleString()} {trashInfo.itemCount === 1 ? 'item' : 'items'}
+                </span>
+              </div>
+            ) : (
+              <div className="trash-stat-row empty">
+                <span className="trash-empty-val">0 B (Empty)</span>
+              </div>
             )}
           </div>
         </div>
@@ -504,9 +508,9 @@ export const Sidebar: React.FC = () => {
             type="button"
             className="sidebar-version-btn"
             onClick={() => checkForUpdates(true)}
-            title="Storage Unleashed v1.0.0 — Click to check for updates"
+            title={`Storage Unleashed v${updateInfo?.currentVersion || '1.1.0'} — Click to check for updates`}
           >
-            <span>{isCheckingUpdate ? 'Checking...' : 'v1.0.0'}</span>
+            <span>{isCheckingUpdate ? 'Checking...' : `v${updateInfo?.currentVersion || '1.1.0'}`}</span>
           </button>
           <button
             type="button"

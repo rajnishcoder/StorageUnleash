@@ -72,64 +72,88 @@ async function getFolderSizeRecursive(dirPath: string): Promise<number> {
  */
 export async function getTrashInfo(): Promise<TrashInfo> {
   if (process.platform === 'darwin') {
-    // Fast path: direct filesystem scan if ~/.Trash is accessible
+    // Strategy 1: Fast direct filesystem scan if ~/.Trash is readable
     const trashPath = path.join(os.homedir(), '.Trash');
     try {
       const entries = await fs.promises.readdir(trashPath);
       const validEntries = entries.filter((e) => e !== '.DS_Store');
-      if (validEntries.length === 0) {
-        return { itemCount: 0, totalSize: 0 };
+      if (validEntries.length > 0) {
+        let totalSize = 0;
+        for (const item of validEntries) {
+          try {
+            const fullPath = path.join(trashPath, item);
+            const stats = await fs.promises.stat(fullPath);
+            totalSize += stats.size;
+            if (stats.isDirectory()) {
+              totalSize += await getFolderSizeRecursive(fullPath);
+            }
+          } catch {}
+        }
+        return { itemCount: validEntries.length, totalSize };
       }
-
-      let totalSize = 0;
-      for (const item of validEntries) {
-        try {
-          const fullPath = path.join(trashPath, item);
-          const stats = await fs.promises.stat(fullPath);
-          totalSize += stats.size;
-          if (stats.isDirectory()) {
-            totalSize += await getFolderSizeRecursive(fullPath);
-          }
-        } catch {}
-      }
-      return { itemCount: validEntries.length, totalSize };
     } catch {
-      // Direct access restricted by TCC, fallback to AppleScript Finder query
+      // Direct access restricted by TCC, fallback to system automation
     }
 
+    // Strategy 2: JXA (JavaScript for Automation) - queries Finder without AppleScript syntax quirks
     return new Promise((resolve) => {
-      // Use indexed loop with 0.0 float arithmetic and string coercion to prevent 32-bit integer overflow on >2GB files
-      const script = `tell application "Finder"
-        try
-          set itmList to (every item of trash)
-          set trashCount to count of itmList
-          set trashSize to 0.0
-          repeat with i from 1 to trashCount
-            try
-              set trashSize to trashSize + (size of (item i of itmList))
-            end try
-          end repeat
-          return "" & trashCount & ":" & (trashSize as string)
-        on error
-          try
-            set trashCount to count of (every item of trash)
-            return "" & trashCount & ":0"
-          on error
-            return "0:0"
-          end try
-        end try
-      end tell`;
+      const jxaScript = `
+        var finder = Application("Finder");
+        try {
+          var items = finder.trash.items();
+          var count = items.length;
+          var totalSize = 0;
+          for (var i = 0; i < count; i++) {
+            try {
+              totalSize += items[i].size();
+            } catch(e) {}
+          }
+          console.log(count + ":" + totalSize);
+        } catch(err) {
+          console.log("0:0");
+        }
+      `;
 
-      execFile('osascript', ['-e', script], { timeout: 8000 }, (err, stdout) => {
-        if (err) {
-          return resolve({ itemCount: 0, totalSize: 0 });
+      execFile('osascript', ['-l', 'JavaScript', '-e', jxaScript], { timeout: 6000 }, (err, stdout) => {
+        if (!err && stdout) {
+          const out = stdout.trim().split('\n').pop() || '';
+          const [cntStr, sizeStr] = out.split(':');
+          const count = parseInt(cntStr || '0', 10) || 0;
+          const size = Math.round(Number(sizeStr || '0')) || 0;
+          if (count > 0 || size > 0) {
+            return resolve({ itemCount: count, totalSize: size });
+          }
         }
 
-        const out = (stdout || '').trim();
-        const [cntStr, sizeStr] = out.split(':');
-        const count = parseInt(cntStr || '0', 10) || 0;
-        const size = Math.round(Number(sizeStr || '0')) || 0;
-        resolve({ itemCount: count, totalSize: size });
+        // Strategy 3: Indexed AppleScript fallback
+        const appleScript = `tell application "Finder"
+          try
+            set itmList to (every item of trash)
+            set trashCount to count of itmList
+            set trashSize to 0.0
+            repeat with i from 1 to trashCount
+              try
+                set trashSize to trashSize + (size of (item i of itmList))
+              end try
+            end repeat
+            return "" & trashCount & ":" & (trashSize as string)
+          on error
+            try
+              set trashCount to count of (every item of trash)
+              return "" & trashCount & ":0"
+            on error
+              return "0:0"
+            end try
+          end try
+        end tell`;
+
+        execFile('osascript', ['-e', appleScript], { timeout: 6000 }, (_asErr, asOut) => {
+          const out = (asOut || '').trim();
+          const [cntStr, sizeStr] = out.split(':');
+          const count = parseInt(cntStr || '0', 10) || 0;
+          const size = Math.round(Number(sizeStr || '0')) || 0;
+          resolve({ itemCount: count, totalSize: size });
+        });
       });
     });
   }
