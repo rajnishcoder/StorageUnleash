@@ -95,28 +95,45 @@ export async function getTrashInfo(): Promise<TrashInfo> {
       // Direct access restricted by TCC, fallback to system automation
     }
 
-    // Strategy 2: JXA (JavaScript for Automation) - queries Finder without AppleScript syntax quirks
+    // Strategy 2: Fast vectorized Finder AppleScript with robust size & missing value handling
     return new Promise((resolve) => {
-      const jxaScript = `
-        var finder = Application("Finder");
-        try {
-          var items = finder.trash.items();
-          var count = items.length;
-          var totalSize = 0;
-          for (var i = 0; i < count; i++) {
-            try {
-              totalSize += items[i].size();
-            } catch(e) {}
-          }
-          console.log(count + ":" + totalSize);
-        } catch(err) {
-          console.log("0:0");
-        }
-      `;
+      const appleScript = `tell application "Finder"
+        try
+          set itmList to (every item of trash)
+          set trashCount to count of itmList
+          if trashCount = 0 then
+            return "0:0"
+          end if
+          set totalSize to 0.0
+          repeat with itm in itmList
+            try
+              set s to size of itm
+              if s is not missing value then
+                set totalSize to totalSize + (s as real)
+              else
+                try
+                  set s to physical size of itm
+                  if s is not missing value then
+                    set totalSize to totalSize + (s as real)
+                  end if
+                end try
+              end if
+            end try
+          end repeat
+          return "" & trashCount & ":" & (totalSize as string)
+        on error
+          try
+            set trashCount to count of (every item of trash)
+            return "" & trashCount & ":0"
+          on error
+            return "0:0"
+          end try
+        end try
+      end tell`;
 
-      execFile('osascript', ['-l', 'JavaScript', '-e', jxaScript], { timeout: 6000 }, (err, stdout) => {
-        if (!err && stdout) {
-          const out = stdout.trim().split('\n').pop() || '';
+      execFile('osascript', ['-e', appleScript], { timeout: 8000 }, (asErr, asOut) => {
+        if (!asErr && asOut) {
+          const out = (asOut || '').trim();
           const [cntStr, sizeStr] = out.split(':');
           const count = parseInt(cntStr || '0', 10) || 0;
           const size = Math.round(Number(sizeStr || '0')) || 0;
@@ -125,34 +142,34 @@ export async function getTrashInfo(): Promise<TrashInfo> {
           }
         }
 
-        // Strategy 3: Indexed AppleScript fallback
-        const appleScript = `tell application "Finder"
-          try
-            set itmList to (every item of trash)
-            set trashCount to count of itmList
-            set trashSize to 0.0
-            repeat with i from 1 to trashCount
-              try
-                set trashSize to trashSize + (size of (item i of itmList))
-              end try
-            end repeat
-            return "" & trashCount & ":" & (trashSize as string)
-          on error
-            try
-              set trashCount to count of (every item of trash)
-              return "" & trashCount & ":0"
-            on error
-              return "0:0"
-            end try
-          end try
-        end tell`;
+        // Strategy 3: JXA fallback
+        const jxaScript = `
+          var finder = Application("Finder");
+          try {
+            var items = finder.trash.items();
+            var count = items.length;
+            var totalSize = 0;
+            for (var i = 0; i < count; i++) {
+              try {
+                var s = items[i].size();
+                if (s) totalSize += s;
+              } catch(e) {}
+            }
+            console.log(count + ":" + totalSize);
+          } catch(err) {
+            console.log("0:0");
+          }
+        `;
 
-        execFile('osascript', ['-e', appleScript], { timeout: 6000 }, (_asErr, asOut) => {
-          const out = (asOut || '').trim();
-          const [cntStr, sizeStr] = out.split(':');
-          const count = parseInt(cntStr || '0', 10) || 0;
-          const size = Math.round(Number(sizeStr || '0')) || 0;
-          resolve({ itemCount: count, totalSize: size });
+        execFile('osascript', ['-l', 'JavaScript', '-e', jxaScript], { timeout: 6000 }, (jxaErr, jxaOut) => {
+          if (!jxaErr && jxaOut) {
+            const out = (jxaOut || '').trim().split('\n').pop() || '';
+            const [cntStr, sizeStr] = out.split(':');
+            const count = parseInt(cntStr || '0', 10) || 0;
+            const size = Math.round(Number(sizeStr || '0')) || 0;
+            return resolve({ itemCount: count, totalSize: size });
+          }
+          resolve({ itemCount: 0, totalSize: 0 });
         });
       });
     });

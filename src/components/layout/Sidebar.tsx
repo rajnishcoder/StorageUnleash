@@ -382,9 +382,15 @@ export const Sidebar: React.FC = () => {
           <div className="trash-card-body">
             {trashInfo && trashInfo.itemCount > 0 ? (
               <div className="trash-stat-row">
-                <span className="trash-size-val">{formatBytes(trashInfo.totalSize || 0, 1)}</span>
+                <span className="trash-size-val">
+                  {trashInfo.totalSize && trashInfo.totalSize > 0
+                    ? formatBytes(trashInfo.totalSize, 1)
+                    : `${trashInfo.itemCount} ${trashInfo.itemCount === 1 ? 'item' : 'items'}`}
+                </span>
                 <span className="trash-count-val">
-                  {trashInfo.itemCount.toLocaleString()} {trashInfo.itemCount === 1 ? 'item' : 'items'}
+                  {trashInfo.totalSize && trashInfo.totalSize > 0
+                    ? `${trashInfo.itemCount.toLocaleString()} ${trashInfo.itemCount === 1 ? 'item' : 'items'}`
+                    : 'In Bin'}
                 </span>
               </div>
             ) : (
