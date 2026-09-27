@@ -30,6 +30,14 @@
     "mac": {
       "category": "public.app-category.utilities",
       "icon": "build/icon.icns",
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.inherit.plist",
+      "extendInfo": {
+        "NSAppleEventsUsageDescription": "StorageUnleash uses Apple Events to inspect Trash status and manage files in Finder safely.",
+        "NSDesktopFolderUsageDescription": "StorageUnleash needs access to scan and analyze disk storage on your Desktop.",
+        "NSDocumentsFolderUsageDescription": "StorageUnleash needs access to scan and analyze disk storage in Documents.",
+        "NSDownloadsFolderUsageDescription": "StorageUnleash needs access to scan and analyze disk storage in Downloads."
+      },
       "target": [
         {
           "target": "dmg",

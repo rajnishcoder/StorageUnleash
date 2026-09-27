@@ -30,7 +30,8 @@ import {
   ChevronDown,
   ChevronUp,
   Heart,
-  Bug
+  Bug,
+  RefreshCw
 } from 'lucide-react';
 import { useStorageStore } from '../../stores/storageStore';
 import { SupportModal } from '../common/SupportModal';
@@ -79,6 +80,7 @@ export const Sidebar: React.FC = () => {
   const [showAllFilters, setShowAllFilters] = useState(false);
   const [isConfirmEmptyTrashOpen, setIsConfirmEmptyTrashOpen] = useState(false);
   const [isEmptyingTrash, setIsEmptyingTrash] = useState(false);
+  const [isRefreshingTrash, setIsRefreshingTrash] = useState(false);
   const [isSupportOpen, setIsSupportOpen] = useState(false);
 
   const {
@@ -97,9 +99,20 @@ export const Sidebar: React.FC = () => {
     scanResult,
     openTrash,
     emptyTrash,
+    refreshTrashInfo,
     isCheckingUpdate,
     checkForUpdates
   } = useStorageStore();
+
+  const handleRefreshTrash = async (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setIsRefreshingTrash(true);
+    try {
+      await refreshTrashInfo();
+    } finally {
+      setTimeout(() => setIsRefreshingTrash(false), 350);
+    }
+  };
 
   const handleEmptyTrash = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -330,11 +343,9 @@ export const Sidebar: React.FC = () => {
             className="trash-left"
             onClick={() => {
               openTrash();
-              setTimeout(() => {
-                useStorageStore.getState().refreshTrashInfo();
-              }, 1200);
+              setTimeout(() => refreshTrashInfo(), 1000);
             }}
-            title={`Click to open ${platform === 'darwin' ? 'Trash in Finder' : 'Recycle Bin'}`}
+            title={`Click to reveal ${platform === 'darwin' ? 'Trash in Finder' : 'Recycle Bin'}`}
           >
             <div className="trash-icon-wrap">
               <Trash2 size={15} color="#f59e0b" />
@@ -350,22 +361,34 @@ export const Sidebar: React.FC = () => {
               </div>
               <span className="trash-subtitle">
                 {trashInfo && trashInfo.itemCount > 0
-                  ? `${trashInfo.itemCount.toLocaleString()} ${trashInfo.itemCount === 1 ? 'item' : 'items'}`
-                  : 'Empty'}
+                  ? `${trashInfo.itemCount.toLocaleString()} ${trashInfo.itemCount === 1 ? 'item' : 'items'} (${formatBytes(trashInfo.totalSize || 0, 1)})`
+                  : '0 items (Empty)'}
               </span>
             </div>
           </div>
 
-          {(trashInfo?.itemCount || 0) > 0 && (
+          <div className="trash-actions-group">
             <button
               type="button"
-              className="trash-action-btn"
-              onClick={handleEmptyTrash}
-              title={`Permanently empty ${platform === 'darwin' ? 'Trash' : 'Recycle Bin'}`}
+              className={`trash-refresh-btn ${isRefreshingTrash ? 'spinning' : ''}`}
+              onClick={handleRefreshTrash}
+              title="Refresh Trash size & count"
+              disabled={isRefreshingTrash}
             >
-              Empty
+              <RefreshCw size={12} />
             </button>
-          )}
+
+            {(trashInfo?.itemCount || 0) > 0 && (
+              <button
+                type="button"
+                className="trash-action-btn"
+                onClick={handleEmptyTrash}
+                title={`Permanently empty ${platform === 'darwin' ? 'Trash' : 'Recycle Bin'}`}
+              >
+                Empty
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Smart Filters */}

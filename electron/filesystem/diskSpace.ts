@@ -98,29 +98,29 @@ export async function getTrashInfo(): Promise<TrashInfo> {
     }
 
     return new Promise((resolve) => {
-      // Use 0.0 float arithmetic and string coercion to prevent 32-bit integer overflow on >2GB files
+      // Use indexed loop with 0.0 float arithmetic and string coercion to prevent 32-bit integer overflow on >2GB files
       const script = `tell application "Finder"
         try
-          set trashItems to every item of trash
-          set cnt to count of trashItems
-          set s to 0.0
-          repeat with i in trashItems
+          set itmList to (every item of trash)
+          set trashCount to count of itmList
+          set trashSize to 0.0
+          repeat with i from 1 to trashCount
             try
-              set s to s + ((size of i) as real)
+              set trashSize to trashSize + (size of (item i of itmList))
             end try
           end repeat
-          return "" & cnt & ":" & (s as string)
+          return "" & trashCount & ":" & (trashSize as string)
         on error
           try
-            set cnt to count of (every item of trash)
-            return "" & cnt & ":0"
+            set trashCount to count of (every item of trash)
+            return "" & trashCount & ":0"
           on error
             return "0:0"
           end try
         end try
       end tell`;
 
-      execFile('osascript', ['-e', script], { timeout: 6000 }, (err, stdout) => {
+      execFile('osascript', ['-e', script], { timeout: 8000 }, (err, stdout) => {
         if (err) {
           return resolve({ itemCount: 0, totalSize: 0 });
         }
