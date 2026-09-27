@@ -30,9 +30,31 @@ A fast, modern, visual desktop storage analyzer crafted specifically for **macOS
 
 ---
 
-## 🚀 Getting Started
+## 📦 Installation
 
-### Prerequisites
+### Option 1: Install via Homebrew 🍺 (Recommended)
+
+```bash
+brew install rajnishcoder/tap/storageunleash
+```
+
+To upgrade later:
+```bash
+brew upgrade storageunleash
+```
+
+### Option 2: Download DMG Installer (.dmg)
+
+1. Download the latest `.dmg` from [storageunleashed.com](https://www.storageunleashed.com) or [GitHub Releases](https://github.com/rajnishcoder/StorageUnleash/releases/latest).
+2. Open the DMG and drag **StorageUnleash** into your **Applications** folder.
+3. *macOS Gatekeeper note for open-source software*: If macOS displays a prompt on first launch, run:
+   ```bash
+   xattr -cr /Applications/StorageUnleash.app
+   ```
+
+---
+
+## 🧑‍💻 Developer Setup
 - macOS 12 (Monterey) through macOS 15+ (Sequoia)
 - Node.js >= 18 (Node 22 or 24 recommended)
 - npm >= 9
