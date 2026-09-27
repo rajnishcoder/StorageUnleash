@@ -11,7 +11,18 @@ let activeScanner: FilesystemScanner | null = null;
 /**
  * Registers all filesystem and storage-related IPC handlers in the Electron main process.
  */
-export function registerFilesystemHandlers(mainWindow: BrowserWindow): void {
+export function registerFilesystemHandlers(getMainWindow?: () => BrowserWindow | null): void {
+  const getTargetWindow = (): BrowserWindow | null => {
+    if (typeof getMainWindow === 'function') {
+      const win = getMainWindow();
+      if (win && !win.isDestroyed()) return win;
+    }
+    const focused = BrowserWindow.getFocusedWindow();
+    if (focused && !focused.isDestroyed()) return focused;
+    const all = BrowserWindow.getAllWindows();
+    return all.length > 0 && !all[0].isDestroyed() ? all[0] : null;
+  };
+
   // Get Disk Space Information
   ipcMain.handle(IPC_CHANNELS.GET_DISK_SPACE, async () => {
     return await getDiskSpace();
@@ -45,10 +56,16 @@ export function registerFilesystemHandlers(mainWindow: BrowserWindow): void {
   // Select Folder Dialog
   ipcMain.handle(IPC_CHANNELS.SELECT_FOLDER, async () => {
     try {
-      const result = await dialog.showOpenDialog(mainWindow, {
-        properties: ['openDirectory', 'createDirectory'],
-        title: 'Select Folder or Disk to Analyze'
-      });
+      const targetWin = getTargetWindow();
+      const result = targetWin
+        ? await dialog.showOpenDialog(targetWin, {
+            properties: ['openDirectory', 'createDirectory'],
+            title: 'Select Folder or Disk to Analyze'
+          })
+        : await dialog.showOpenDialog({
+            properties: ['openDirectory', 'createDirectory'],
+            title: 'Select Folder or Disk to Analyze'
+          });
 
       if (result.canceled || result.filePaths.length === 0) {
         return null;
@@ -74,22 +91,25 @@ export function registerFilesystemHandlers(mainWindow: BrowserWindow): void {
 
     try {
       activeScanner = new FilesystemScanner((progress: ScanProgress) => {
-        if (!mainWindow.isDestroyed()) {
-          mainWindow.webContents.send(IPC_CHANNELS.SCAN_PROGRESS, progress);
+        const win = getTargetWindow();
+        if (win && !win.isDestroyed()) {
+          win.webContents.send(IPC_CHANNELS.SCAN_PROGRESS, progress);
         }
       });
 
       const scanResult = await activeScanner.scan(scanPath);
       activeScanner = null;
 
-      if (!mainWindow.isDestroyed()) {
-        mainWindow.webContents.send(IPC_CHANNELS.SCAN_COMPLETE, scanResult);
+      const win = getTargetWindow();
+      if (win && !win.isDestroyed()) {
+        win.webContents.send(IPC_CHANNELS.SCAN_COMPLETE, scanResult);
       }
     } catch (error: any) {
       activeScanner = null;
       console.error(`[Main] Error scanning path ${scanPath}:`, error);
-      if (!mainWindow.isDestroyed()) {
-        mainWindow.webContents.send(IPC_CHANNELS.SCAN_ERROR, {
+      const win = getTargetWindow();
+      if (win && !win.isDestroyed()) {
+        win.webContents.send(IPC_CHANNELS.SCAN_ERROR, {
           path: scanPath,
           message: error?.message || 'Scan failed',
           code: error?.code

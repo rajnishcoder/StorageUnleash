@@ -39,9 +39,9 @@ function createWindow(): void {
     }
   });
 
-  // Register all secure IPC handlers
-  registerFilesystemHandlers(mainWindow);
-  registerUpdateHandlers();
+  mainWindow.on('closed', () => {
+    mainWindow = null;
+  });
 
   // Show window gracefully when ready to avoid blank white flash
   mainWindow.once('ready-to-show', () => {
@@ -65,6 +65,10 @@ function createWindow(): void {
 
 // App lifecycle
 app.whenReady().then(() => {
+  // Register all secure IPC handlers once globally
+  registerFilesystemHandlers(() => mainWindow);
+  registerUpdateHandlers();
+
   createWindow();
 
   app.on('activate', () => {
