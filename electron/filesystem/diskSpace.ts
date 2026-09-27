@@ -46,46 +46,83 @@ export async function getDiskSpace(): Promise<DiskSpaceInfo> {
   };
 }
 
+async function getFolderSizeRecursive(dirPath: string): Promise<number> {
+  let size = 0;
+  try {
+    const entries = await fs.promises.readdir(dirPath, { withFileTypes: true });
+    for (const entry of entries) {
+      const full = path.join(dirPath, entry.name);
+      if (entry.isFile()) {
+        try {
+          const s = await fs.promises.stat(full);
+          size += s.size;
+        } catch {}
+      } else if (entry.isDirectory()) {
+        size += await getFolderSizeRecursive(full);
+      }
+    }
+  } catch {}
+  return size;
+}
+
 /**
  * Counts items and calculates total size in user's OS trash.
- * On macOS, queries Finder via AppleScript to bypass TCC scandir restrictions on ~/.Trash.
+ * On macOS, checks ~/.Trash directly first and falls back to overflow-safe AppleScript.
  * On Windows, queries Shell.Application RecycleBin.
  */
 export async function getTrashInfo(): Promise<TrashInfo> {
   if (process.platform === 'darwin') {
+    // Fast path: direct filesystem scan if ~/.Trash is accessible
+    const trashPath = path.join(os.homedir(), '.Trash');
+    try {
+      const entries = await fs.promises.readdir(trashPath);
+      const validEntries = entries.filter((e) => e !== '.DS_Store');
+      if (validEntries.length === 0) {
+        return { itemCount: 0, totalSize: 0 };
+      }
+
+      let totalSize = 0;
+      for (const item of validEntries) {
+        try {
+          const fullPath = path.join(trashPath, item);
+          const stats = await fs.promises.stat(fullPath);
+          totalSize += stats.size;
+          if (stats.isDirectory()) {
+            totalSize += await getFolderSizeRecursive(fullPath);
+          }
+        } catch {}
+      }
+      return { itemCount: validEntries.length, totalSize };
+    } catch {
+      // Direct access restricted by TCC, fallback to AppleScript Finder query
+    }
+
     return new Promise((resolve) => {
+      // Use 0.0 float arithmetic and string coercion to prevent 32-bit integer overflow on >2GB files
       const script = `tell application "Finder"
         try
           set trashItems to every item of trash
           set cnt to count of trashItems
-          set s to 0
+          set s to 0.0
           repeat with i in trashItems
             try
-              set s to (s + (size of i)) as integer
+              set s to s + ((size of i) as real)
             end try
           end repeat
-          return "" & cnt & ":" & s
+          return "" & cnt & ":" & (s as string)
         on error
-          return "0:0"
+          try
+            set cnt to count of (every item of trash)
+            return "" & cnt & ":0"
+          on error
+            return "0:0"
+          end try
         end try
       end tell`;
 
-      execFile('osascript', ['-e', script], { timeout: 4000 }, (err, stdout) => {
+      execFile('osascript', ['-e', script], { timeout: 6000 }, (err, stdout) => {
         if (err) {
-          // Fallback to fast count only if detailed loop timed out or errored
-          execFile(
-            'osascript',
-            ['-e', 'tell application "Finder" to count every item of trash'],
-            { timeout: 2000 },
-            (countErr, countOut) => {
-              if (countErr) {
-                return resolve({ itemCount: 0, totalSize: 0 });
-              }
-              const cnt = parseInt((countOut || '').trim(), 10) || 0;
-              return resolve({ itemCount: cnt, totalSize: 0 });
-            }
-          );
-          return;
+          return resolve({ itemCount: 0, totalSize: 0 });
         }
 
         const out = (stdout || '').trim();

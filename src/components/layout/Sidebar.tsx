@@ -328,7 +328,12 @@ export const Sidebar: React.FC = () => {
         <div className="trash-row">
           <div
             className="trash-left"
-            onClick={() => openTrash()}
+            onClick={() => {
+              openTrash();
+              setTimeout(() => {
+                useStorageStore.getState().refreshTrashInfo();
+              }, 1200);
+            }}
             title={`Click to open ${platform === 'darwin' ? 'Trash in Finder' : 'Recycle Bin'}`}
           >
             <div className="trash-icon-wrap">

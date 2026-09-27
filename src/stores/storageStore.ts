@@ -84,6 +84,10 @@ export const useStorageStore = create<StorageState>((set, get) => {
         hasPendingDiskChanges: false
       });
 
+      // Update trash stats and disk space
+      get().refreshTrashInfo();
+      window.storageAPI?.getDiskSpace().then((disk) => set({ diskSpace: disk })).catch(() => {});
+
       // Smooth transition giving time for UI to prepare and render treemap
       setTimeout(() => {
         set({ scanStatus: 'completed' });
@@ -96,6 +100,14 @@ export const useStorageStore = create<StorageState>((set, get) => {
         errorMessage: error.message
       });
     });
+
+    // Auto-refresh trash and disk space whenever app window regains focus
+    if (typeof window !== 'undefined') {
+      window.addEventListener('focus', () => {
+        get().refreshTrashInfo();
+        window.storageAPI?.getDiskSpace().then((disk) => set({ diskSpace: disk })).catch(() => {});
+      });
+    }
   }
 
   return {

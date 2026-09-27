@@ -38,9 +38,26 @@ export async function moveToTrash(paths: string[]): Promise<TrashResult> {
  */
 export async function emptyTrash(): Promise<boolean> {
   if (process.platform === 'darwin') {
+    // Attempt direct removal of ~/.Trash contents first
+    const trashPath = path.join(os.homedir(), '.Trash');
+    let directCleaned = false;
+    try {
+      const items = await fs.promises.readdir(trashPath);
+      if (items.length > 0) {
+        await Promise.all(
+          items.map((item) =>
+            fs.promises.rm(path.join(trashPath, item), { recursive: true, force: true }).catch(() => {})
+          )
+        );
+        directCleaned = true;
+      }
+    } catch {
+      // Direct access restricted, proceed with AppleScript
+    }
+
     return new Promise((resolve) => {
       execFile('osascript', ['-e', 'tell application "Finder" to empty trash'], { timeout: 15000 }, (err) => {
-        if (err) {
+        if (err && !directCleaned) {
           console.error('[Trash] Failed to empty trash via AppleScript:', err);
           return resolve(false);
         }
@@ -81,11 +98,18 @@ export async function emptyTrash(): Promise<boolean> {
  */
 export async function openTrash(): Promise<void> {
   if (process.platform === 'darwin') {
-    execFile('osascript', ['-e', 'tell application "Finder" to open trash'], (err) => {
-      if (err) {
-        shell.openPath(path.join(os.homedir(), '.Trash'));
+    execFile(
+      'osascript',
+      [
+        '-e', 'tell application "Finder" to activate',
+        '-e', 'tell application "Finder" to open trash'
+      ],
+      (err) => {
+        if (err) {
+          shell.openPath(path.join(os.homedir(), '.Trash'));
+        }
       }
-    });
+    );
   } else if (process.platform === 'win32') {
     shell.openPath('shell:RecycleBinFolder');
   } else {
