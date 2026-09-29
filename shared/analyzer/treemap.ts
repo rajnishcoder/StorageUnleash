@@ -48,23 +48,27 @@ export function computeHierarchicalTreemap(
 
   // Filter positive-size children and sort descending
   const validChildren = node.children
-    .filter((c) => c.size > 0)
+    .filter((c) => typeof c.size === 'number' && c.size > 0)
     .sort((a, b) => b.size - a.size);
 
-  if (validChildren.length === 0) return [];
+  const hasOnlyZeroSize = validChildren.length === 0 && node.children.length > 0;
+  const effectiveChildren = hasOnlyZeroSize ? node.children.slice(0, 40) : validChildren;
+  const totalSum = hasOnlyZeroSize
+    ? effectiveChildren.length
+    : effectiveChildren.reduce((acc, c) => acc + (c.size > 0 ? c.size : 0), 0);
 
-  const totalSum = validChildren.reduce((acc, c) => acc + c.size, 0);
-  if (totalSum <= 0) return [];
+  if (effectiveChildren.length === 0 || totalSum <= 0) return [];
 
-  const minThreshold = depth === 0 ? 0.003 : (depth === 1 ? 0.006 : 0.012);
+  const minThreshold = hasOnlyZeroSize ? 0 : (depth === 0 ? 0.003 : (depth === 1 ? 0.006 : 0.012));
   const maxItems = depth === 0 ? 30 : 20;
 
   const mainItems: FileNode[] = [];
   const otherItems: FileNode[] = [];
 
-  for (let i = 0; i < validChildren.length; i++) {
-    const child = validChildren[i];
-    const pct = child.size / totalSum;
+  for (let i = 0; i < effectiveChildren.length; i++) {
+    const child = effectiveChildren[i];
+    const childWeight = hasOnlyZeroSize ? 1 : Math.max(0, child.size);
+    const pct = totalSum > 0 ? childWeight / totalSum : 0;
     if (i < maxItems && pct >= minThreshold) {
       mainItems.push(child);
     } else {
@@ -72,13 +76,18 @@ export function computeHierarchicalTreemap(
     }
   }
 
+  // Guarantee at least the top items are in mainItems
+  if (mainItems.length === 0 && otherItems.length > 0) {
+    mainItems.push(...otherItems.splice(0, Math.min(10, otherItems.length)));
+  }
+
   const itemsToLayout: ItemWithSize[] = mainItems.map((n) => ({
     node: n,
-    size: n.size
+    size: hasOnlyZeroSize ? 1 : n.size
   }));
 
   if (otherItems.length > 0) {
-    const otherSize = otherItems.reduce((acc, it) => acc + it.size, 0);
+    const otherSize = hasOnlyZeroSize ? otherItems.length : otherItems.reduce((acc, it) => acc + Math.max(0, it.size), 0);
     if (otherSize > 0) {
       itemsToLayout.push({
         size: otherSize,
@@ -105,15 +114,21 @@ export function computeHierarchicalTreemap(
       // Check for single-child chain compression (e.g. .ollama -> models -> blobs)
       let targetNode = rect.node;
       const collapsed: string[] = [targetNode.name];
+      const visited = new Set<string>([targetNode.id || targetNode.path]);
 
       while (
         targetNode.children &&
         targetNode.children.length === 1 &&
         targetNode.children[0].type === 'directory' &&
         targetNode.children[0].children &&
-        targetNode.children[0].children.length > 0
+        targetNode.children[0].children.length > 0 &&
+        collapsed.length < 8
       ) {
-        targetNode = targetNode.children[0];
+        const nextTarget = targetNode.children[0];
+        const nextKey = nextTarget.id || nextTarget.path;
+        if (visited.has(nextKey)) break;
+        visited.add(nextKey);
+        targetNode = nextTarget;
         collapsed.push(targetNode.name);
       }
 
@@ -162,10 +177,14 @@ function squarify(
   const results: TreemapRect[] = [];
   const totalArea = bounds.width * bounds.height;
 
-  const normalizedItems = items.map((it) => ({
-    ...it,
-    area: (it.size / totalSum) * totalArea
-  }));
+  const normalizedItems = items
+    .map((it) => ({
+      ...it,
+      area: totalSum > 0 ? (Math.max(0, it.size) / totalSum) * totalArea : 0
+    }))
+    .filter((it) => isFinite(it.area) && it.area > 0);
+
+  if (normalizedItems.length === 0) return [];
 
   let currentBounds = { ...bounds };
   let row: typeof normalizedItems = [];
@@ -175,7 +194,7 @@ function squarify(
     const candidateRow = [...row, item];
     const side = Math.min(currentBounds.width, currentBounds.height);
 
-    if (row.length === 0 || worst(row, side) >= worst(candidateRow, side)) {
+    if (row.length === 0 || (side > 0 && worst(row, side) >= worst(candidateRow, side))) {
       row = candidateRow;
     } else {
       currentBounds = layoutRow(row, currentBounds, results, totalSum, depth, colorIndex);
@@ -191,7 +210,7 @@ function squarify(
 }
 
 function worst(row: Array<{ area: number }>, side: number): number {
-  if (row.length === 0 || side <= 0) return Infinity;
+  if (row.length === 0 || side <= 0 || !isFinite(side)) return Infinity;
   const s2 = side * side;
   let maxArea = -Infinity;
   let minArea = Infinity;
@@ -199,15 +218,17 @@ function worst(row: Array<{ area: number }>, side: number): number {
 
   for (let i = 0; i < row.length; i++) {
     const a = row[i].area;
+    if (!isFinite(a) || a < 0) continue;
     sumArea += a;
     if (a > maxArea) maxArea = a;
     if (a < minArea) minArea = a;
   }
 
-  if (sumArea <= 0 || minArea <= 0) return Infinity;
+  if (sumArea <= 0 || minArea <= 0 || !isFinite(sumArea) || !isFinite(minArea)) return Infinity;
   const r2 = sumArea * sumArea;
 
-  return Math.max((s2 * maxArea) / r2, r2 / (s2 * minArea));
+  const score = Math.max((s2 * maxArea) / r2, r2 / (s2 * minArea));
+  return isFinite(score) ? score : Infinity;
 }
 
 function layoutRow(
@@ -218,63 +239,55 @@ function layoutRow(
   depth: number,
   colorIndex: number
 ): Bounds {
-  if (row.length === 0) return bounds;
+  if (row.length === 0 || bounds.width <= 0 || bounds.height <= 0) return bounds;
 
   const isHorizontal = bounds.width >= bounds.height;
   const sideLength = isHorizontal ? bounds.height : bounds.width;
-  const rowArea = row.reduce((s, it) => s + it.area, 0);
-  const rowThickness = sideLength > 0 ? rowArea / sideLength : 0;
+  if (sideLength <= 0 || !isFinite(sideLength)) return bounds;
+
+  const rowArea = row.reduce((s, it) => s + (isFinite(it.area) ? it.area : 0), 0);
+  const rawThickness = rowArea / sideLength;
+  const maxThickness = isHorizontal ? bounds.width : bounds.height;
+  const rowThickness = Math.min(maxThickness, Math.max(0, isFinite(rawThickness) ? rawThickness : 0));
 
   let pos = isHorizontal ? bounds.y : bounds.x;
 
   for (let idx = 0; idx < row.length; idx++) {
     const item = row[idx];
-    const itemLength = rowThickness > 0 ? item.area / rowThickness : 0;
+    const itemArea = isFinite(item.area) ? item.area : 0;
+    const rawLength = rowThickness > 0 ? itemArea / rowThickness : 0;
+    const maxItemLength = isHorizontal ? Math.max(0, bounds.height - (pos - bounds.y)) : Math.max(0, bounds.width - (pos - bounds.x));
+    const itemLength = Math.min(maxItemLength, Math.max(0, isFinite(rawLength) ? rawLength : 0));
     const pct = totalSum > 0 ? item.size / totalSum : 0;
     const itemColorIdx = depth === 0 ? results.length : (colorIndex * 2 + idx) % 12;
 
-    let rect: TreemapRect;
+    const safeW = isHorizontal ? rowThickness : itemLength;
+    const safeH = isHorizontal ? itemLength : rowThickness;
+    const safeX = isHorizontal ? bounds.x : pos;
+    const safeY = isHorizontal ? pos : bounds.y;
 
-    if (isHorizontal) {
-      rect = {
-        id: item.isOther ? `other-${depth}-${bounds.x}-${pos}` : (item.node?.id || item.node?.path || Math.random().toString()),
-        name: item.isOther ? `Other (${item.otherCount} items)` : (item.node?.name || 'Unnamed'),
-        path: item.node?.path || '',
-        type: item.isOther ? 'other' : (item.node?.type || 'file'),
-        size: item.size,
-        percentage: pct,
-        depth,
-        x: bounds.x,
-        y: pos,
-        width: rowThickness,
-        height: itemLength,
-        node: item.node,
-        colorIndex: itemColorIdx
-      };
-      pos += itemLength;
-    } else {
-      rect = {
-        id: item.isOther ? `other-${depth}-${pos}-${bounds.y}` : (item.node?.id || item.node?.path || Math.random().toString()),
-        name: item.isOther ? `Other (${item.otherCount} items)` : (item.node?.name || 'Unnamed'),
-        path: item.node?.path || '',
-        type: item.isOther ? 'other' : (item.node?.type || 'file'),
-        size: item.size,
-        percentage: pct,
-        depth,
-        x: pos,
-        y: bounds.y,
-        width: itemLength,
-        height: rowThickness,
-        node: item.node,
-        colorIndex: itemColorIdx
-      };
-      pos += itemLength;
-    }
+    results.push({
+      id: item.isOther
+        ? `other-${depth}-${Math.round(safeX)}-${Math.round(safeY)}-${idx}`
+        : (item.node?.id || item.node?.path || `item-${depth}-${idx}-${Math.random()}`),
+      name: item.isOther ? `Other (${item.otherCount} items)` : (item.node?.name || 'Unnamed'),
+      path: item.node?.path || '',
+      type: item.isOther ? 'other' : (item.node?.type || 'file'),
+      size: item.node ? item.node.size : item.size,
+      percentage: pct,
+      depth,
+      x: isFinite(safeX) ? safeX : 0,
+      y: isFinite(safeY) ? safeY : 0,
+      width: isFinite(safeW) ? safeW : 0,
+      height: isFinite(safeH) ? safeH : 0,
+      node: item.node,
+      colorIndex: itemColorIdx
+    });
 
-    results.push(rect);
+    pos += itemLength;
   }
 
-  // Return remaining bounds
+  // Return remaining bounds safely
   if (isHorizontal) {
     return {
       x: bounds.x + rowThickness,
