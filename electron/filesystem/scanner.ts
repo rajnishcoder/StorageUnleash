@@ -123,6 +123,19 @@ export class FilesystemScanner {
 
     if (this.isCancelled) return node;
 
+    // Cycle and junction loop protection
+    let realPath = dirPath;
+    try {
+      realPath = await fs.promises.realpath(dirPath);
+    } catch {
+      realPath = dirPath;
+    }
+
+    if (this.visitedRealPaths.has(realPath)) {
+      return node;
+    }
+    this.visitedRealPaths.add(realPath);
+
     let entries: fs.Dirent[] = [];
     try {
       entries = await fs.promises.readdir(dirPath, { withFileTypes: true });

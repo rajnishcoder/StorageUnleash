@@ -102,7 +102,8 @@ export const TreemapView: React.FC<TreemapViewProps> = ({ onContextMenu }) => {
     selectNode,
     devFilters,
     searchQuery,
-    platform
+    platform,
+    scanStatus
   } = useStorageStore();
 
   useEffect(() => {
@@ -129,14 +130,23 @@ export const TreemapView: React.FC<TreemapViewProps> = ({ onContextMenu }) => {
 
     // If current directory has only 1 child directory (e.g. Users -> username), unwrap it for full-screen density
     let rootToRender = currentDirectory;
-    if (
+    const visited = new Set<string>([rootToRender.id || rootToRender.path]);
+    let unwrapDepth = 0;
+
+    while (
       rootToRender.children &&
       rootToRender.children.length === 1 &&
       rootToRender.children[0].type === 'directory' &&
       rootToRender.children[0].children &&
-      rootToRender.children[0].children.length > 0
+      rootToRender.children[0].children.length > 0 &&
+      unwrapDepth < 4
     ) {
-      rootToRender = rootToRender.children[0];
+      const nextChild = rootToRender.children[0];
+      const nextKey = nextChild.id || nextChild.path;
+      if (visited.has(nextKey)) break;
+      visited.add(nextKey);
+      rootToRender = nextChild;
+      unwrapDepth++;
     }
 
     return computeHierarchicalTreemap(
@@ -438,10 +448,15 @@ export const TreemapView: React.FC<TreemapViewProps> = ({ onContextMenu }) => {
           <svg className="treemap-svg" width={dimensions.width} height={dimensions.height}>
             {hierarchicalRects.map((rect, idx) => renderRect(rect, idx))}
           </svg>
-        ) : (
+        ) : scanStatus === 'scanning' ? (
           <div className="treemap-loader-container">
             <div className="treemap-loader-spinner" />
             <span className="treemap-loader-text">Loading visualization...</span>
+          </div>
+        ) : (
+          <div className="treemap-empty-state">
+            <Layers size={36} style={{ opacity: 0.4 }} />
+            <span>This folder is empty or contains only 0-byte items.</span>
           </div>
         )}
       </div>
