@@ -16,12 +16,12 @@ export const CleanupListModal: React.FC<CleanupListModalProps> = ({
   onClose,
   onConfirmClean
 }) => {
-  const { cleanupList, removeFromCleanupList, clearCleanupList, platform } = useStorageStore();
+  const { cleanupList, removeFromCleanupList, clearCleanupList, platformDetails } = useStorageStore();
 
   if (!isOpen) return null;
 
   const totalBytes = cleanupList.reduce((acc, it) => acc + it.size, 0);
-  const trashName = platform === 'darwin' ? 'Trash' : 'Recycle Bin';
+  const trashName = platformDetails.trashName;
 
   return (
     <div className="modal-overlay" onClick={onClose}>

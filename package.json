@@ -1,9 +1,9 @@
 {
-  "name": "storage-unleash",
-  "productName": "StorageUnleash",
+  "name": "storage-unleashed",
+  "productName": "StorageUnleashed",
   "version": "1.1.0",
   "private": true,
-  "description": "Fast, modern, visual desktop storage analyzer for macOS.",
+  "description": "Fast, modern, visual desktop storage analyzer for macOS & Windows.",
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
@@ -12,14 +12,15 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "preview": "vite preview",
-    "dist": "npm run build && electron-builder --mac dmg --arm64 --x64",
-    "dist:arm64": "npm run build && electron-builder --mac dmg --arm64",
-    "dist:x64": "npm run build && electron-builder --mac dmg --x64",
-    "dist:dir": "npm run build && electron-builder --mac --dir"
+    "dist": "npm run build && electron-builder",
+    "dist:mac": "npm run build && electron-builder --mac dmg --arm64 --x64",
+    "dist:win": "npm run build && electron-builder --win nsis --x64",
+    "dist:all": "npm run build && electron-builder -mw",
+    "dist:dir": "npm run build && electron-builder --dir"
   },
   "build": {
     "appId": "com.storageunleashed.app",
-    "productName": "StorageUnleash",
+    "productName": "StorageUnleashed",
     "directories": {
       "output": "release"
     },
@@ -33,10 +34,10 @@
       "entitlements": "build/entitlements.mac.plist",
       "entitlementsInherit": "build/entitlements.mac.inherit.plist",
       "extendInfo": {
-        "NSAppleEventsUsageDescription": "StorageUnleash uses Apple Events to inspect Trash status and manage files in Finder safely.",
-        "NSDesktopFolderUsageDescription": "StorageUnleash needs access to scan and analyze disk storage on your Desktop.",
-        "NSDocumentsFolderUsageDescription": "StorageUnleash needs access to scan and analyze disk storage in Documents.",
-        "NSDownloadsFolderUsageDescription": "StorageUnleash needs access to scan and analyze disk storage in Downloads."
+        "NSAppleEventsUsageDescription": "StorageUnleashed uses Apple Events to inspect Trash status and manage files in Finder safely.",
+        "NSDesktopFolderUsageDescription": "StorageUnleashed needs access to scan and analyze disk storage on your Desktop.",
+        "NSDocumentsFolderUsageDescription": "StorageUnleashed needs access to scan and analyze disk storage in Documents.",
+        "NSDownloadsFolderUsageDescription": "StorageUnleashed needs access to scan and analyze disk storage in Downloads."
       },
       "target": [
         {
@@ -67,6 +68,32 @@
         "width": 540,
         "height": 380
       }
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Storage Unleashed",
+      "uninstallDisplayName": "Storage Unleashed"
     }
   },
   "dependencies": {

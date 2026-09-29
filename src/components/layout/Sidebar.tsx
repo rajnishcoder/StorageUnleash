@@ -91,7 +91,7 @@ export const Sidebar: React.FC = () => {
     scanStatus,
     diskSpace,
     trashInfo,
-    platform,
+    platformDetails,
     devFilters,
     toggleDevFilter,
     cleanupList,
@@ -132,7 +132,7 @@ export const Sidebar: React.FC = () => {
   };
 
   const handleOpenFeedback = () => {
-    const url = 'https://github.com/rajnishcoder/StorageUnleash/issues/new?title=%5BFeedback%5D+';
+    const url = 'https://github.com/rajnishcoder/StorageUnleashed/issues/new?title=%5BFeedback%5D+';
     if (window.storageAPI?.openExternalUrl) {
       window.storageAPI.openExternalUrl(url).catch(() => window.open(url, '_blank'));
     } else {
@@ -176,7 +176,7 @@ export const Sidebar: React.FC = () => {
   }, [init]);
 
   const handleScanFullDisk = () => {
-    const root = platform === 'win32' ? 'C:\\' : '/';
+    const root = platformDetails.isWindows ? 'C:\\' : '/';
     startScan(root);
   };
 
@@ -227,7 +227,7 @@ export const Sidebar: React.FC = () => {
         <div className="sidebar-actions">
           <button type="button" className="btn-scan-primary" onClick={handleScanFullDisk}>
             <Zap size={16} />
-            <span>{platform === 'darwin' ? 'Scan Full Mac' : 'Scan Full Disk'}</span>
+            <span>{platformDetails.isMac ? 'Scan Full Mac' : platformDetails.isWindows ? 'Scan System (C:)' : 'Scan Full Disk'}</span>
           </button>
           <button type="button" className="btn-scan-secondary" onClick={handleScanHome}>
             <Home size={15} color="#38bdf8" />
@@ -345,14 +345,14 @@ export const Sidebar: React.FC = () => {
             openTrash();
             setTimeout(() => refreshTrashInfo(), 1000);
           }}
-          title={`Click to reveal ${platform === 'darwin' ? 'Trash in Finder' : 'Recycle Bin'}`}
+          title={`Click to reveal ${platformDetails.trashName} in ${platformDetails.fileManagerName}`}
         >
           <div className="trash-card-header">
             <div className="trash-title-group">
               <div className="trash-icon-wrap">
                 <Trash2 size={14} color="#f59e0b" />
               </div>
-              <span className="trash-title">{platform === 'darwin' ? 'Trash' : 'Recycle Bin'}</span>
+              <span className="trash-title">{platformDetails.trashName}</span>
             </div>
 
             <div className="trash-actions-group">
@@ -371,7 +371,7 @@ export const Sidebar: React.FC = () => {
                   type="button"
                   className="trash-action-btn"
                   onClick={handleEmptyTrash}
-                  title={`Permanently empty ${platform === 'darwin' ? 'Trash' : 'Recycle Bin'}`}
+                  title={`Permanently empty ${platformDetails.trashName}`}
                 >
                   Empty
                 </button>
@@ -556,14 +556,14 @@ export const Sidebar: React.FC = () => {
               >
                 <Trash2 size={22} />
               </div>
-              <div className="modal-title">Empty {platform === 'darwin' ? 'Trash' : 'Recycle Bin'}?</div>
+              <div className="modal-title">Empty {platformDetails.trashName}?</div>
             </div>
             <div className="modal-body">
               <p>
                 Are you sure you want to permanently delete all{' '}
                 <strong>{trashInfo?.itemCount} items</strong>
                 {trashInfo?.totalSize ? ` (${formatBytes(trashInfo.totalSize)})` : ''} in the{' '}
-                {platform === 'darwin' ? 'Trash' : 'Recycle Bin'}?
+                {platformDetails.trashName}?
               </p>
               <div style={{ fontSize: '12px', color: '#f43f5e', marginTop: '8px', fontWeight: 500 }}>
                 ⚠️ This action is permanent and cannot be undone.
@@ -588,7 +588,7 @@ export const Sidebar: React.FC = () => {
                 <span>
                   {isEmptyingTrash
                     ? 'Emptying...'
-                    : `Empty ${platform === 'darwin' ? 'Trash' : 'Recycle Bin'}`}
+                    : `Empty ${platformDetails.trashName}`}
                 </span>
               </button>
             </div>

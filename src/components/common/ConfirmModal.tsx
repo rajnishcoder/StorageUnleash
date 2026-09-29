@@ -1,6 +1,7 @@
 import React from 'react';
 import { Trash2 } from 'lucide-react';
 import { formatBytes, truncatePath } from '@shared/utils/formatters';
+import { getPlatformDetails } from '@shared/platform/platformInfo';
 import type { FileNode } from '@shared/models/fileNode';
 import './ConfirmModal.css';
 
@@ -9,7 +10,7 @@ interface ConfirmModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
-  platform: string;
+  platform?: string;
 }
 
 export const ConfirmModal: React.FC<ConfirmModalProps> = ({
@@ -21,7 +22,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
 }) => {
   if (!isOpen || !node) return null;
 
-  const trashName = platform === 'darwin' ? 'Trash' : 'Recycle Bin';
+  const { trashName } = getPlatformDetails(platform);
 
   return (
     <div className="modal-overlay" onClick={onClose}>

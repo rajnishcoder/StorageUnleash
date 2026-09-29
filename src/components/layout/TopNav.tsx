@@ -11,7 +11,7 @@ export const TopNav: React.FC = () => {
     setViewMode,
     searchQuery,
     setSearchQuery,
-    platform,
+    platformDetails,
     updateInfo,
     isUpdateDismissed,
     setIsUpdateModalOpen
@@ -20,10 +20,10 @@ export const TopNav: React.FC = () => {
   return (
     <header className="top-nav">
       <div className="top-nav-left">
-        {platform === 'darwin' && <div className="mac-traffic-lights-spacer" />}
+        {platformDetails.isMac && <div className="mac-traffic-lights-spacer" />}
         <div className="top-nav-brand">
           <PieChart size={17} color="#38bdf8" />
-          <span>StorageUnleash</span>
+          <span>Storage Unleashed</span>
         </div>
       </div>
 
@@ -37,7 +37,7 @@ export const TopNav: React.FC = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
-          <span className="search-shortcut">⌘F</span>
+          <span className="search-shortcut">{platformDetails.modKey}F</span>
         </div>
       </div>
 
