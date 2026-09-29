@@ -8,10 +8,13 @@ import type { DiskSpaceInfo, TrashInfo } from '@shared/types/ipc';
  * Retrieves total, used, and free disk space for the primary filesystem.
  * On macOS APFS, inspects /System/Volumes/Data for exact container stats.
  */
-export async function getDiskSpace(): Promise<DiskSpaceInfo> {
+export async function getDiskSpace(customPath?: string): Promise<DiskSpaceInfo> {
   let targetPath = '/';
-  if (process.platform === 'win32') {
-    targetPath = process.cwd().split(path.sep)[0] + '\\';
+  if (customPath && fs.existsSync(customPath)) {
+    targetPath = customPath;
+  } else if (process.platform === 'win32') {
+    const sysDrive = process.env.SystemDrive || 'C:';
+    targetPath = sysDrive.endsWith('\\') ? sysDrive : sysDrive + '\\';
   } else if (process.platform === 'darwin') {
     targetPath = fs.existsSync('/System/Volumes/Data') ? '/System/Volumes/Data' : '/';
   }

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { FileNode, ScanProgress, ScanResult, ScanError } from '@shared/models/fileNode';
-import type { QuickTarget, DiskSpaceInfo, TrashInfo, AppUpdateInfo } from '@shared/types/ipc';
+import type { QuickTarget, DiskSpaceInfo, SystemDiskInfo, TrashInfo, AppUpdateInfo } from '@shared/types/ipc';
+import { getPlatformDetails, PlatformDetails, normalizeCrossPath } from '@shared/platform/platformInfo';
 
 export type ScanStatus = 'idle' | 'scanning' | 'preparing' | 'completed' | 'cancelled' | 'error';
 export type ViewMode = 'treemap' | 'sunburst' | 'list';
@@ -22,8 +23,10 @@ export interface StorageState {
   // System & Disk Information
   quickTargets: QuickTarget[];
   diskSpace: DiskSpaceInfo | null;
+  systemDisks: SystemDiskInfo[];
   trashInfo: TrashInfo | null;
   platform: string;
+  platformDetails: PlatformDetails;
 
   // App Update State
   updateInfo: AppUpdateInfo | null;
@@ -60,6 +63,7 @@ export interface StorageState {
   removePathFromTree: (deletedPath: string) => void;
   removePathsFromTree: (deletedPaths: string[]) => void;
   refreshTrashInfo: () => Promise<void>;
+  refreshDisks: () => Promise<void>;
   emptyTrash: () => Promise<boolean>;
   openTrash: () => Promise<void>;
   checkForUpdates: (manual?: boolean) => Promise<AppUpdateInfo | null>;
@@ -84,9 +88,9 @@ export const useStorageStore = create<StorageState>((set, get) => {
         hasPendingDiskChanges: false
       });
 
-      // Update trash stats and disk space
+      // Update trash stats, system disks and primary disk space
       get().refreshTrashInfo();
-      window.storageAPI?.getDiskSpace().then((disk) => set({ diskSpace: disk })).catch(() => {});
+      get().refreshDisks();
 
       // Smooth transition giving time for UI to prepare and render treemap
       setTimeout(() => {
@@ -105,7 +109,7 @@ export const useStorageStore = create<StorageState>((set, get) => {
     if (typeof window !== 'undefined') {
       window.addEventListener('focus', () => {
         get().refreshTrashInfo();
-        window.storageAPI?.getDiskSpace().then((disk) => set({ diskSpace: disk })).catch(() => {});
+        get().refreshDisks();
       });
     }
   }
@@ -124,8 +128,10 @@ export const useStorageStore = create<StorageState>((set, get) => {
 
     quickTargets: [],
     diskSpace: null,
+    systemDisks: [],
     trashInfo: null,
     platform: 'desktop',
+    platformDetails: getPlatformDetails(),
 
     updateInfo: null,
     isCheckingUpdate: false,
@@ -140,16 +146,19 @@ export const useStorageStore = create<StorageState>((set, get) => {
     init: async () => {
       if (typeof window !== 'undefined' && window.storageAPI) {
         try {
-          const [targets, plat, disk, trash] = await Promise.all([
+          const [targets, plat, disk, disks, trash] = await Promise.all([
             window.storageAPI.getQuickTargets(),
             window.storageAPI.getPlatform(),
             window.storageAPI.getDiskSpace(),
+            window.storageAPI.getDisks ? window.storageAPI.getDisks() : Promise.resolve([]),
             window.storageAPI.getTrashInfo()
           ]);
           set({
             quickTargets: targets,
             platform: plat,
+            platformDetails: getPlatformDetails(plat),
             diskSpace: disk,
+            systemDisks: disks && disks.length > 0 ? disks : disk ? [{ ...disk, id: 'primary', name: 'Primary Drive', isSystemDrive: true }] : [],
             trashInfo: trash
           });
 
@@ -163,17 +172,35 @@ export const useStorageStore = create<StorageState>((set, get) => {
       }
     },
 
+    refreshDisks: async () => {
+      if (typeof window !== 'undefined' && window.storageAPI) {
+        try {
+          const [disk, disks] = await Promise.all([
+            window.storageAPI.getDiskSpace(),
+            window.storageAPI.getDisks ? window.storageAPI.getDisks() : Promise.resolve([])
+          ]);
+          set({
+            diskSpace: disk,
+            systemDisks: disks && disks.length > 0 ? disks : disk ? [{ ...disk, id: 'primary', name: 'Primary Drive', isSystemDrive: true }] : []
+          });
+        } catch (err) {
+          console.error('Failed to refresh disks:', err);
+        }
+      }
+    },
+
     startScan: async (targetPath: string) => {
       if (!targetPath) return;
+      const normalizedPath = normalizeCrossPath(targetPath);
 
       set({
         scanStatus: 'scanning',
-        currentScanPath: targetPath,
+        currentScanPath: normalizedPath,
         progress: {
           filesScanned: 0,
           directoriesScanned: 0,
           bytesProcessed: 0,
-          currentPath: targetPath
+          currentPath: normalizedPath
         },
         errorMessage: null,
         selectedNode: null,
@@ -184,7 +211,7 @@ export const useStorageStore = create<StorageState>((set, get) => {
 
       if (typeof window !== 'undefined' && window.storageAPI) {
         try {
-          await window.storageAPI.startScan(targetPath);
+          await window.storageAPI.startScan(normalizedPath);
         } catch (error: any) {
           set({
             scanStatus: 'error',

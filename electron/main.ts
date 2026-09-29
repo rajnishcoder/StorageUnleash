@@ -1,5 +1,6 @@
 import { app, BrowserWindow, shell } from 'electron';
 import path from 'node:path';
+import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { registerFilesystemHandlers } from './ipc/filesystemHandlers';
 import { registerUpdateHandlers } from './ipc/updateHandlers';
@@ -19,15 +20,21 @@ process.env.VITE_PUBLIC = process.env.VITE_DEV_SERVER_URL
 let mainWindow: BrowserWindow | null = null;
 
 function createWindow(): void {
+  const iconPath = process.platform === 'win32'
+    ? path.join(process.env.APP_ROOT || __dirname, 'build', 'icon.ico')
+    : undefined;
+
   mainWindow = new BrowserWindow({
     width: 1100,
     height: 750,
     minWidth: 800,
     minHeight: 550,
-    title: 'StorageUnleash',
+    title: 'Storage Unleashed',
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
     trafficLightPosition: { x: 16, y: 16 },
     backgroundColor: '#0f172a',
+    autoHideMenuBar: true,
+    icon: iconPath && fs.existsSync(iconPath) ? iconPath : undefined,
     show: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),

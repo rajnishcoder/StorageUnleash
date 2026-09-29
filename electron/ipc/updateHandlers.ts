@@ -2,7 +2,7 @@ import { app, ipcMain } from 'electron';
 import { IPC_CHANNELS, AppUpdateInfo } from '@shared/types/ipc';
 import { isNewerVersion, resolveDownloadUrl, GitHubReleasePayload } from '@shared/utils/version';
 
-const GITHUB_REPO = 'rajnishcoder/StorageUnleash';
+const GITHUB_REPO = 'rajnishcoder/StorageUnleashed';
 const GITHUB_RELEASES_API = `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`;
 const GITHUB_RELEASES_PAGE = `https://github.com/${GITHUB_REPO}/releases/latest`;
 
@@ -16,7 +16,7 @@ export async function checkForAppUpdates(): Promise<AppUpdateInfo> {
   try {
     const response = await fetch(GITHUB_RELEASES_API, {
       headers: {
-        'User-Agent': `StorageUnleash-Desktop-App/v${currentVersion}`,
+        'User-Agent': `StorageUnleashed-Desktop-App/v${currentVersion}`,
         'Accept': 'application/vnd.github.v3+json'
       }
     });
@@ -37,7 +37,7 @@ export async function checkForAppUpdates(): Promise<AppUpdateInfo> {
     const latestVersion = latestTag.replace(/^v/, '');
 
     const hasUpdate = isNewerVersion(latestVersion, currentVersion);
-    const downloadUrl = resolveDownloadUrl(payload, arch);
+    const downloadUrl = resolveDownloadUrl(payload, arch, process.platform);
 
     return {
       hasUpdate,

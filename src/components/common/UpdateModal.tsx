@@ -26,7 +26,7 @@ export const UpdateModal: React.FC = () => {
   };
 
   const handleOpenReleases = () => {
-    const url = updateInfo?.releaseUrl || 'https://github.com/rajnishcoder/StorageUnleash/releases/latest';
+    const url = updateInfo?.releaseUrl || 'https://github.com/rajnishcoder/StorageUnleashed/releases/latest';
     if (window.storageAPI?.openExternalUrl) {
       window.storageAPI.openExternalUrl(url);
     } else {

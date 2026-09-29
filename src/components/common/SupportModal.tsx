@@ -188,7 +188,7 @@ export const SupportModal: React.FC<SupportModalProps> = ({
           <button
             type="button"
             className="btn-link-inline"
-            onClick={() => handleOpenUrl('https://github.com/rajnishcoder/StorageUnleash/issues')}
+            onClick={() => handleOpenUrl('https://github.com/rajnishcoder/StorageUnleashed/issues')}
           >
             Report on GitHub <ExternalLink size={11} />
           </button>

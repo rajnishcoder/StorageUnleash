@@ -2,6 +2,7 @@ import { dialog, shell, ipcMain, BrowserWindow } from 'electron';
 import { IPC_CHANNELS } from '@shared/types/ipc';
 import { FilesystemScanner } from '../filesystem/scanner';
 import { getSystemQuickTargets } from '../filesystem/quickTargets';
+import { getSystemDrives } from '../filesystem/drives';
 import { moveToTrash, emptyTrash, openTrash } from '../filesystem/trash';
 import { getDiskSpace, getTrashInfo } from '../filesystem/diskSpace';
 import type { ScanProgress } from '@shared/models/fileNode';
@@ -23,9 +24,19 @@ export function registerFilesystemHandlers(getMainWindow?: () => BrowserWindow |
     return all.length > 0 && !all[0].isDestroyed() ? all[0] : null;
   };
 
-  // Get Disk Space Information
-  ipcMain.handle(IPC_CHANNELS.GET_DISK_SPACE, async () => {
-    return await getDiskSpace();
+  // Get Disk Space Information for primary or custom mount
+  ipcMain.handle(IPC_CHANNELS.GET_DISK_SPACE, async (_event, targetPath?: string) => {
+    return await getDiskSpace(targetPath);
+  });
+
+  // Get All Mounted Disks and Storage Volumes
+  ipcMain.handle(IPC_CHANNELS.GET_DISKS, async () => {
+    try {
+      return await getSystemDrives();
+    } catch (error) {
+      console.error('[Main] Failed to get system disks:', error);
+      return [];
+    }
   });
 
   // Get Trash info
@@ -161,7 +172,7 @@ export function registerFilesystemHandlers(getMainWindow?: () => BrowserWindow |
     }
   });
 
-  // Open System Privacy Settings (Full Disk Access or Files and Folders on macOS)
+  // Open System Privacy Settings (Full Disk Access on macOS, Windows Settings on Windows)
   ipcMain.handle(IPC_CHANNELS.OPEN_SYSTEM_PRIVACY_SETTINGS, async (_event, target?: string) => {
     if (process.platform === 'darwin') {
       try {
@@ -178,6 +189,12 @@ export function registerFilesystemHandlers(getMainWindow?: () => BrowserWindow |
         } catch {
           // ignore
         }
+      }
+    } else if (process.platform === 'win32') {
+      try {
+        await shell.openExternal('ms-settings:privacy');
+      } catch (err) {
+        console.error('[Main] Failed to open Windows privacy settings:', err);
       }
     }
   });

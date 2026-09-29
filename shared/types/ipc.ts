@@ -16,6 +16,13 @@ export interface DiskSpaceInfo {
   mount: string;
 }
 
+export interface SystemDiskInfo extends DiskSpaceInfo {
+  id: string;
+  name: string;
+  isSystemDrive?: boolean;
+  driveType?: 'fixed' | 'removable' | 'network' | 'unknown';
+}
+
 export interface TrashInfo {
   itemCount: number;
   totalSize: number;
@@ -38,6 +45,7 @@ export interface AppUpdateInfo {
 export const IPC_CHANNELS = {
   // Disk & Quick targets
   GET_DISK_SPACE: 'storage:get-disk-space',
+  GET_DISKS: 'storage:get-disks',
   GET_QUICK_TARGETS: 'storage:get-quick-targets',
   SELECT_FOLDER: 'storage:select-folder',
   GET_TRASH_INFO: 'storage:get-trash-info',
@@ -70,7 +78,8 @@ export type IPCChannelName = typeof IPC_CHANNELS[keyof typeof IPC_CHANNELS];
  * Typed storage API exposed to renderer window.storageAPI.
  */
 export interface StorageAPI {
-  getDiskSpace(): Promise<DiskSpaceInfo>;
+  getDiskSpace(targetPath?: string): Promise<DiskSpaceInfo>;
+  getDisks(): Promise<SystemDiskInfo[]>;
   getQuickTargets(): Promise<QuickTarget[]>;
   getTrashInfo(): Promise<TrashInfo>;
   emptyTrash(): Promise<boolean>;

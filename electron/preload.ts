@@ -1,10 +1,14 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
-import { IPC_CHANNELS, StorageAPI, QuickTarget, DiskSpaceInfo, TrashInfo, AppUpdateInfo } from '@shared/types/ipc';
+import { IPC_CHANNELS, StorageAPI, QuickTarget, DiskSpaceInfo, SystemDiskInfo, TrashInfo, AppUpdateInfo } from '@shared/types/ipc';
 import type { ScanProgress, ScanResult, ScanError, TrashResult } from '@shared/models/fileNode';
 
 const storageAPI: StorageAPI = {
-  getDiskSpace: (): Promise<DiskSpaceInfo> => {
-    return ipcRenderer.invoke(IPC_CHANNELS.GET_DISK_SPACE);
+  getDiskSpace: (targetPath?: string): Promise<DiskSpaceInfo> => {
+    return ipcRenderer.invoke(IPC_CHANNELS.GET_DISK_SPACE, targetPath);
+  },
+
+  getDisks: (): Promise<SystemDiskInfo[]> => {
+    return ipcRenderer.invoke(IPC_CHANNELS.GET_DISKS);
   },
 
   getQuickTargets: (): Promise<QuickTarget[]> => {

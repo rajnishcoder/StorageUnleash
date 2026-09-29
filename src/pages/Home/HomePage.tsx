@@ -1,10 +1,11 @@
 import React from 'react';
-import { FolderOpen, HardDrive, ShieldCheck, Sparkles, Home, Users, AppWindow, Download, FileText } from 'lucide-react';
+import { FolderOpen, HardDrive, ShieldCheck, Sparkles, Home, Users, AppWindow, Download, FileText, LayoutGrid } from 'lucide-react';
 import { useStorageStore } from '../../stores/storageStore';
+import { formatBytes } from '@shared/utils/formatters';
 import './HomePage.css';
 
 export const HomePage: React.FC = () => {
-  const { startScan, quickTargets, platform } = useStorageStore();
+  const { startScan, quickTargets, systemDisks, platformDetails } = useStorageStore();
 
   const handleSelectFolder = async () => {
     if (!window.storageAPI) {
@@ -35,7 +36,7 @@ export const HomePage: React.FC = () => {
       case 'documents':
         return <FileText size={18} />;
       default:
-        return <HardDrive size={18} />;
+        return <LayoutGrid size={18} />;
     }
   };
 
@@ -43,15 +44,72 @@ export const HomePage: React.FC = () => {
     <div className="home-container">
       <div className="home-badge">
         <span className="home-badge-dot" />
-        <span>Storage Analyzer v1.1.0</span>
+        <span>Storage Analyzer v1.1.0 • {platformDetails.platformName}</span>
       </div>
 
-      <h1 className="home-title">StorageUnleash</h1>
+      <h1 className="home-title">Storage Unleashed</h1>
       <p className="home-subtitle">
         Understand and visualize what is consuming storage on your computer.
         Fast, modern, and private.
       </p>
 
+      {/* System Disks & Storage Drives */}
+      {systemDisks.length > 0 && (
+        <div className="home-drives-section">
+          <div className="home-section-title">
+            <span>Drives & Volumes ({systemDisks.length})</span>
+          </div>
+          <div className="home-drives-grid">
+            {systemDisks.map((disk) => {
+              const usedPercent = Math.min(100, Math.max(0, disk.percentage || 0));
+              const isHigh = usedPercent >= 90;
+              const isMid = usedPercent >= 75 && !isHigh;
+              const barColor = isHigh ? '#ef4444' : isMid ? '#f59e0b' : '#38bdf8';
+
+              return (
+                <button
+                  key={disk.id || disk.mount}
+                  type="button"
+                  className="home-drive-card"
+                  onClick={() => startScan(disk.mount)}
+                  title={`Click to scan ${disk.name} (${disk.mount})`}
+                >
+                  <div className="drive-card-header">
+                    <div className="drive-icon-box">
+                      <HardDrive size={22} color={barColor} />
+                    </div>
+                    <div className="drive-info">
+                      <div className="drive-name-row">
+                        <span className="drive-name">{disk.name}</span>
+                        {disk.isSystemDrive && <span className="system-drive-pill">System</span>}
+                      </div>
+                      <span className="drive-mount">{disk.mount}</span>
+                    </div>
+                  </div>
+
+                  <div className="drive-meter-wrap">
+                    <div className="drive-meter-bar">
+                      <div
+                        className="drive-meter-fill"
+                        style={{
+                          width: `${usedPercent}%`,
+                          backgroundColor: barColor
+                        }}
+                      />
+                    </div>
+                    <div className="drive-meter-labels">
+                      <span>{formatBytes(disk.free)} free</span>
+                      <span>{formatBytes(disk.total)}</span>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Action Cards */}
       <div className="home-actions">
         <button
           className="action-card"
@@ -73,8 +131,8 @@ export const HomePage: React.FC = () => {
           <div className="action-icon-wrapper">
             <HardDrive size={28} />
           </div>
-          <span className="action-label">Analyze a Disk</span>
-          <span className="action-description">Scan entire drive or mount point</span>
+          <span className="action-label">Custom Drive or Disk</span>
+          <span className="action-description">Select external disk, USB or mount</span>
         </button>
       </div>
 
@@ -110,7 +168,7 @@ export const HomePage: React.FC = () => {
         <span>•</span>
         <div className="footer-item">
           <Sparkles size={14} color="#818cf8" />
-          <span style={{ textTransform: 'capitalize' }}>Platform: {platform}</span>
+          <span>{platformDetails.platformName} Desktop</span>
         </div>
       </div>
     </div>

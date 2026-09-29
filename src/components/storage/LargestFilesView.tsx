@@ -13,7 +13,7 @@ interface LargestFilesViewProps {
 }
 
 export const LargestFilesView: React.FC<LargestFilesViewProps> = ({ onTrashRequest, onContextMenu }) => {
-  const { scanResult, platform, cleanupList, toggleCleanupItem } = useStorageStore();
+  const { scanResult, platformDetails, cleanupList, toggleCleanupItem } = useStorageStore();
   const [searchQuery, setSearchQuery] = useState('');
 
   const largestFiles = useMemo(() => {
@@ -115,7 +115,7 @@ export const LargestFilesView: React.FC<LargestFilesViewProps> = ({ onTrashReque
                         type="button"
                         className="table-btn"
                         onClick={() => handleReveal(file.path)}
-                        title={platform === 'darwin' ? 'Reveal in Finder' : 'Show in Explorer'}
+                        title={`Reveal in ${platformDetails.fileManagerName}`}
                       >
                         <ExternalLink size={12} />
                       </button>
@@ -123,7 +123,7 @@ export const LargestFilesView: React.FC<LargestFilesViewProps> = ({ onTrashReque
                         type="button"
                         className="table-btn trash-btn"
                         onClick={() => onTrashRequest(file)}
-                        title="Move to Trash"
+                        title={`Move to ${platformDetails.trashName}`}
                       >
                         <Trash2 size={12} />
                       </button>

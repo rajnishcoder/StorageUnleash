@@ -45,18 +45,49 @@ export interface GitHubReleasePayload {
 }
 
 /**
- * Selects the best download URL matching the user's macOS architecture (arm64 vs x64).
+ * Selects the best download URL matching the user's OS platform (macOS, Windows, Linux) and architecture (arm64 vs x64).
  */
 export function resolveDownloadUrl(
   release: GitHubReleasePayload,
-  arch: string = 'arm64'
+  arch: string = 'x64',
+  platform?: string
 ): string {
   if (!release.assets || release.assets.length === 0) {
     return release.html_url;
   }
 
+  const plat = platform || (typeof process !== 'undefined' ? process.platform : 'darwin');
   const isArm = arch === 'arm64';
 
+  // Windows asset resolution (.exe, Setup.exe, .msi)
+  if (plat === 'win32' || plat === 'windows') {
+    if (isArm) {
+      const armExe = release.assets.find(
+        (a) => a.name.toLowerCase().includes('arm64') && (a.name.toLowerCase().endsWith('.exe') || a.name.toLowerCase().endsWith('.msi'))
+      );
+      if (armExe) return armExe.browser_download_url;
+    }
+    const x64Exe = release.assets.find(
+      (a) => (a.name.toLowerCase().includes('x64') || a.name.toLowerCase().includes('setup') || a.name.toLowerCase().includes('win')) &&
+        (a.name.toLowerCase().endsWith('.exe') || a.name.toLowerCase().endsWith('.msi'))
+    );
+    if (x64Exe) return x64Exe.browser_download_url;
+
+    const anyExe = release.assets.find(
+      (a) => a.name.toLowerCase().endsWith('.exe') || a.name.toLowerCase().endsWith('.msi')
+    );
+    if (anyExe) return anyExe.browser_download_url;
+  }
+
+  // Linux asset resolution (.AppImage, .deb, .tar.gz)
+  if (plat === 'linux') {
+    const appImage = release.assets.find((a) => a.name.toLowerCase().endsWith('.appimage'));
+    if (appImage) return appImage.browser_download_url;
+    const deb = release.assets.find((a) => a.name.toLowerCase().endsWith('.deb'));
+    if (deb) return deb.browser_download_url;
+  }
+
+  // macOS asset resolution (.dmg)
   if (isArm) {
     const armAsset = release.assets.find(
       (a) => a.name.toLowerCase().includes('arm64') && a.name.toLowerCase().endsWith('.dmg')

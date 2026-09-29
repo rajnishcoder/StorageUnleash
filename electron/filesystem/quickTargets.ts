@@ -62,6 +62,18 @@ export async function getSystemQuickTargets(): Promise<QuickTarget[]> {
     });
   }
 
+  // Desktop Directory
+  const desktopPath = path.join(home, 'Desktop');
+  if (fs.existsSync(desktopPath)) {
+    targets.push({
+      id: 'desktop',
+      name: 'Desktop',
+      path: desktopPath,
+      iconType: 'desktop',
+      description: 'Desktop Workspace'
+    });
+  }
+
   // Documents Directory
   const docsPath = path.join(home, 'Documents');
   if (fs.existsSync(docsPath)) {

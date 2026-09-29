@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { ArrowRight, Trash2, Layers, Check } from 'lucide-react';
+import { getPlatformDetails } from '@shared/platform/platformInfo';
 import type { FileNode } from '@shared/models/fileNode';
 import './ContextMenu.css';
 
@@ -12,7 +13,7 @@ export interface ContextMenuProps {
   onTrash: (node: FileNode) => void;
   onToggleCleanup: (node: FileNode) => void;
   isInCleanup?: boolean;
-  platform: string;
+  platform?: string;
 }
 
 export const ContextMenu: React.FC<ContextMenuProps> = ({
@@ -27,6 +28,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
   platform
 }) => {
   const menuRef = useRef<HTMLDivElement>(null);
+  const platDetails = getPlatformDetails(platform);
 
   // Close on outside click, window blur, resize, or escape key
   useEffect(() => {
@@ -73,7 +75,8 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
     (typeof window !== 'undefined' ? window.innerHeight : 800) - menuHeight - padding
   );
 
-  const revealLabel = platform === 'darwin' ? 'Reveal in Finder' : platform === 'win32' ? 'Show in Explorer' : 'Show in File Manager';
+  const revealLabel = `Reveal in ${platDetails.fileManagerName}`;
+  const trashLabel = `Move to ${platDetails.trashName}`;
 
   return (
     <div
@@ -116,7 +119,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
           <div className="item-icon-left">
             <Trash2 size={14} color="#ef4444" />
           </div>
-          <span className="item-label">Move to Trash</span>
+          <span className="item-label">{trashLabel}</span>
         </button>
 
         <button
