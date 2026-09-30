@@ -119,7 +119,29 @@ async function getWindowsDrives(): Promise<SystemDiskInfo[]> {
 }
 
 /**
- * macOS drive detector: primary container + /Volumes mounted drives.
+ * Helper to query active disk image mount points on macOS via hdiutil.
+ */
+async function getMountedDiskImagePaths(): Promise<Set<string>> {
+  const diskImageMounts = new Set<string>();
+  try {
+    const stdout = await new Promise<string>((resolve) => {
+      execFile('hdiutil', ['info'], { timeout: 2000 }, (_err, out) => {
+        resolve(out || '');
+      });
+    });
+    const lines = stdout.split('\n');
+    for (const line of lines) {
+      const match = line.match(/\/Volumes\/[^\t\r\n]+/);
+      if (match) {
+        diskImageMounts.add(match[0].trim());
+      }
+    }
+  } catch {}
+  return diskImageMounts;
+}
+
+/**
+ * macOS drive detector: primary container + /Volumes mounted physical drives.
  */
 async function getMacDrives(): Promise<SystemDiskInfo[]> {
   const drives: SystemDiskInfo[] = [];
@@ -150,19 +172,42 @@ async function getMacDrives(): Promise<SystemDiskInfo[]> {
     console.error('[Drives] Failed to get primary Mac drive stats:', err);
   }
 
-  // Inspect /Volumes for external SSDs, USB drives, DMGs
+  // Inspect /Volumes for external SSDs, USB drives (excluding temporary virtual DMGs & disk images)
   try {
+    const diskImageMounts = await getMountedDiskImagePaths();
+
     if (fs.existsSync('/Volumes')) {
       const volEntries = await fs.promises.readdir('/Volumes', { withFileTypes: true });
       for (const entry of volEntries) {
         if (!entry.name || entry.name.startsWith('.')) continue;
         const volPath = path.join('/Volumes', entry.name);
 
-        // Skip symlinks pointing back to root
+        // 1. Skip if detected as a mounted disk image (DMG / ISO)
+        if (diskImageMounts.has(volPath)) continue;
+
+        // 2. Skip symlinks pointing back to root or system paths
         try {
           const real = await fs.promises.realpath(volPath);
-          if (real === '/' || real === primaryMount) continue;
+          if (real === '/' || real === primaryMount || real.startsWith('/System')) continue;
         } catch {}
+
+        // 3. Skip read-only installer volumes & disk images (EROFS)
+        try {
+          await fs.promises.access(volPath, fs.constants.W_OK);
+        } catch (err: any) {
+          if (err?.code === 'EROFS') continue;
+        }
+
+        // 4. Skip known virtual/installer naming patterns
+        const lowerName = entry.name.toLowerCase();
+        if (
+          lowerName.includes('storageunleashed') ||
+          lowerName.includes('storage unleashed') ||
+          lowerName.includes('timemachine') ||
+          lowerName.includes('recovery')
+        ) {
+          continue;
+        }
 
         try {
           const stats = await fs.promises.statfs(volPath);
