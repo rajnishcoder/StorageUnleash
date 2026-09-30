@@ -1,6 +1,18 @@
 import React, { useState } from 'react';
-import { Heart, Coffee, Sparkles, Rocket, X, ExternalLink } from 'lucide-react';
+import {
+  Heart,
+  Coffee,
+  Sparkles,
+  Rocket,
+  X,
+  ExternalLink,
+  Copy,
+  Check,
+  QrCode,
+  Smartphone
+} from 'lucide-react';
 import { formatBytes } from '@shared/utils/formatters';
+import upiQrImg from '../../assets/upi-qr.png';
 import './SupportModal.css';
 
 interface SupportModalProps {
@@ -9,6 +21,8 @@ interface SupportModalProps {
   reclaimedBytes?: number;
 }
 
+const UPI_ID = 'getwere-1@oksbi';
+const UPI_PAY_URL = 'upi://pay?pa=getwere-1@oksbi&pn=Rajnish%20Rajput&aid=uGICAgICm786GTg';
 const BUY_ME_A_COFFEE_URL = 'https://buymeacoffee.com/rajnishcoder';
 const GITHUB_SPONSORS_URL = 'https://github.com/sponsors/rajnishcoder';
 
@@ -45,6 +59,8 @@ export const SupportModal: React.FC<SupportModalProps> = ({
   onClose,
   reclaimedBytes
 }) => {
+  const [showQr, setShowQr] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [customAmount, setCustomAmount] = useState('');
   const [showCustomInput, setShowCustomInput] = useState(false);
 
@@ -61,6 +77,13 @@ export const SupportModal: React.FC<SupportModalProps> = ({
     // Record support interaction
     localStorage.setItem('su_support_supported', 'true');
     onClose();
+  };
+
+  const handleCopyUpi = () => {
+    navigator.clipboard.writeText(UPI_ID).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
   };
 
   const handleCustomSubmit = (e: React.FormEvent) => {
@@ -83,29 +106,30 @@ export const SupportModal: React.FC<SupportModalProps> = ({
           onClick={handleDismiss}
           aria-label="Close"
         >
-          <X size={18} />
+          <X size={16} />
         </button>
 
         <div className="support-modal-header">
           <div className="support-heart-badge">
-            <Heart size={28} className="support-heart-icon" />
+            <Heart size={22} className="support-heart-icon" />
           </div>
           <h2 className="support-modal-title">Enjoying Storage Unleashed?</h2>
-          
+
           {reclaimedBytes !== undefined && reclaimedBytes > 0 && (
             <div className="support-reclaimed-banner">
-              <Sparkles size={15} color="#38bdf8" />
+              <Sparkles size={13} color="#38bdf8" />
               <span>
-                You just reclaimed <strong>{formatBytes(reclaimedBytes)}</strong> of storage! 🎉
+                You reclaimed <strong>{formatBytes(reclaimedBytes)}</strong> of storage! 🎉
               </span>
             </div>
           )}
 
           <p className="support-modal-desc">
-            Storage Unleashed is <strong>100% free, private, and local</strong> — no accounts, no subscriptions, and zero tracking. If it helped you free up disk space, consider supporting ongoing development!
+            Storage Unleashed is <strong>100% free, private, and local</strong> — no ads, no subscriptions, and zero tracking. If it helped you free up disk space, consider supporting ongoing development!
           </p>
         </div>
 
+        {/* 3 Main Tiers (Original UI) */}
         <div className="support-tiers-grid">
           {SUPPORT_TIERS.map((tier) => {
             const Icon = tier.icon;
@@ -116,9 +140,9 @@ export const SupportModal: React.FC<SupportModalProps> = ({
                 className={`support-tier-card ${tier.highlight ? 'highlight' : ''}`}
                 onClick={() => handleOpenUrl(tier.url)}
               >
-                {tier.highlight && <span className="tier-popular-pill">Most Popular</span>}
+                {tier.highlight && <span className="tier-popular-pill">Popular</span>}
                 <div className="tier-icon-wrap">
-                  <Icon size={20} />
+                  <Icon size={18} />
                 </div>
                 <div className="tier-amount">{tier.label}</div>
                 <div className="tier-tagline">{tier.tagline}</div>
@@ -126,6 +150,66 @@ export const SupportModal: React.FC<SupportModalProps> = ({
               </button>
             );
           })}
+        </div>
+
+        {/* Compact Single-Line UPI Option */}
+        <div className="support-upi-inline-bar">
+          <div className="upi-inline-header">
+            <div className="upi-inline-left">
+              <span className="upi-flag">🇮🇳</span>
+              <span className="upi-label-text">UPI:</span>
+              <code className="upi-code-badge" onClick={handleCopyUpi} title="Click to copy">
+                {UPI_ID}
+              </code>
+            </div>
+            <div className="upi-inline-actions">
+              <button
+                type="button"
+                className={`btn-upi-mini-copy ${copied ? 'copied' : ''}`}
+                onClick={handleCopyUpi}
+                title="Copy UPI ID"
+              >
+                {copied ? <Check size={12} /> : <Copy size={12} />}
+                <span>{copied ? 'Copied' : 'Copy'}</span>
+              </button>
+              <button
+                type="button"
+                className={`btn-upi-mini-qr ${showQr ? 'active' : ''}`}
+                onClick={() => setShowQr(!showQr)}
+              >
+                <QrCode size={12} />
+                <span>{showQr ? 'Hide QR' : 'Show QR'}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Expandable QR section */}
+          {showQr && (
+            <div className="upi-qr-expanded-card">
+              <div className="upi-qr-image-wrap">
+                <img
+                  src={upiQrImg}
+                  alt="GPay QR Code"
+                  className="upi-qr-image"
+                />
+              </div>
+              <div className="upi-qr-details">
+                <div className="upi-qr-scan-hint">
+                  <QrCode size={13} className="text-cyan" />
+                  <span>Scan with <strong>Google Pay, PhonePe, Paytm, BHIM</strong> or any UPI app</span>
+                </div>
+                <button
+                  type="button"
+                  className="upi-qr-direct-pay"
+                  onClick={() => handleOpenUrl(UPI_PAY_URL)}
+                >
+                  <Smartphone size={13} />
+                  <span>Open in UPI App</span>
+                  <ExternalLink size={11} />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {showCustomInput ? (
@@ -145,7 +229,7 @@ export const SupportModal: React.FC<SupportModalProps> = ({
             </div>
             <button type="submit" className="custom-submit-btn">
               <span>Support</span>
-              <ExternalLink size={14} />
+              <ExternalLink size={13} />
             </button>
             <button
               type="button"
@@ -190,7 +274,7 @@ export const SupportModal: React.FC<SupportModalProps> = ({
             className="btn-link-inline"
             onClick={() => handleOpenUrl('https://github.com/rajnishcoder/StorageUnleashed/issues')}
           >
-            Report on GitHub <ExternalLink size={11} />
+            Report on GitHub <ExternalLink size={10} />
           </button>
         </div>
       </div>
