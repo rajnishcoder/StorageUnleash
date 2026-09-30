@@ -10,7 +10,7 @@ const GITHUB_RELEASES_PAGE = `https://github.com/${GITHUB_REPO}/releases/latest`
  * Checks GitHub Releases API for new updates.
  */
 export async function checkForAppUpdates(): Promise<AppUpdateInfo> {
-  const currentVersion = app.getVersion() || '1.1.0';
+  const currentVersion = app.getVersion() || '1.1.1';
   const arch = process.arch === 'arm64' ? 'arm64' : 'x64';
 
   try {
