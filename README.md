@@ -139,6 +139,7 @@ StorageUnleashed/
 
 Storage Unleashed is 100% free, privacy-first, and open-source software. If you find it useful for analyzing disk space and keeping your Mac clean, consider supporting its continuous maintenance and feature development:
 
+- 🇮🇳 **UPI (India - Any Amount)**: `getwere-1@oksbi` (GPay / PhonePe / Paytm / BHIM)
 - 💖 **GitHub Sponsors**: [github.com/sponsors/rajnishcoder](https://github.com/sponsors/rajnishcoder)
 - ☕ **Buy Me a Coffee**: [buymeacoffee.com/rajnishcoder](https://buymeacoffee.com/rajnishcoder)
 
