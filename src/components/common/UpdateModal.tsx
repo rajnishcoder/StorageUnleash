@@ -117,7 +117,7 @@ export const UpdateModal: React.FC = () => {
             </div>
             <h2 className="update-modal-title">You're Up to Date!</h2>
             <p className="update-subtitle">
-              Storage Unleashed <strong>v{updateInfo?.currentVersion || '1.1.0'}</strong> is the latest version available.
+              Storage Unleashed <strong>v{updateInfo?.currentVersion || '1.1.1'}</strong> is the latest version available.
             </p>
             <div className="update-modal-actions" style={{ justifyContent: 'center', marginTop: '20px' }}>
               <button

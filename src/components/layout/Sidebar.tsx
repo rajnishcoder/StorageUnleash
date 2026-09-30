@@ -514,9 +514,9 @@ export const Sidebar: React.FC = () => {
             type="button"
             className="sidebar-version-btn"
             onClick={() => checkForUpdates(true)}
-            title={`Storage Unleashed v${updateInfo?.currentVersion || '1.1.0'} — Click to check for updates`}
+            title={`Storage Unleashed v${updateInfo?.currentVersion || '1.1.1'} — Click to check for updates`}
           >
-            <span>{isCheckingUpdate ? 'Checking...' : `v${updateInfo?.currentVersion || '1.1.0'}`}</span>
+            <span>{isCheckingUpdate ? 'Checking...' : `v${updateInfo?.currentVersion || '1.1.1'}`}</span>
           </button>
           <button
             type="button"

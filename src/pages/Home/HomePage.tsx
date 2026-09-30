@@ -5,7 +5,7 @@ import { formatBytes } from '@shared/utils/formatters';
 import './HomePage.css';
 
 export const HomePage: React.FC = () => {
-  const { startScan, quickTargets, systemDisks, platformDetails } = useStorageStore();
+  const { startScan, quickTargets, systemDisks, platformDetails, updateInfo } = useStorageStore();
 
   const handleSelectFolder = async () => {
     if (!window.storageAPI) {
@@ -44,7 +44,7 @@ export const HomePage: React.FC = () => {
     <div className="home-container">
       <div className="home-badge">
         <span className="home-badge-dot" />
-        <span>Storage Analyzer v1.1.0 • {platformDetails.platformName}</span>
+        <span>Storage Analyzer v{updateInfo?.currentVersion || '1.1.1'} • {platformDetails.platformName}</span>
       </div>
 
       <h1 className="home-title">Storage Unleashed</h1>
