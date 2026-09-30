@@ -39,6 +39,10 @@ export class FilesystemScanner {
     this.isCancelled = true;
   }
 
+  public get cancelled(): boolean {
+    return this.isCancelled;
+  }
+
   public async scan(rootPath: string): Promise<ScanResult> {
     const startTime = Date.now();
     this.isCancelled = false;

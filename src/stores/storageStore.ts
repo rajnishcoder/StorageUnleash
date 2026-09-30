@@ -79,6 +79,12 @@ export const useStorageStore = create<StorageState>((set, get) => {
     });
 
     window.storageAPI.onScanComplete((scanResult) => {
+      // If the scan was cancelled or reset, ignore incoming result
+      const currentStatus = get().scanStatus;
+      if (currentStatus === 'idle' || currentStatus === 'cancelled') {
+        return;
+      }
+
       set({
         scanStatus: 'preparing',
         scanResult,
@@ -94,7 +100,9 @@ export const useStorageStore = create<StorageState>((set, get) => {
 
       // Smooth transition giving time for UI to prepare and render treemap
       setTimeout(() => {
-        set({ scanStatus: 'completed' });
+        if (get().scanStatus === 'preparing') {
+          set({ scanStatus: 'completed' });
+        }
       }, 300);
     });
 
@@ -222,6 +230,9 @@ export const useStorageStore = create<StorageState>((set, get) => {
     },
 
     cancelScan: async () => {
+      // Immediately reset state to home so user is routed to default homepage
+      get().resetToHome();
+
       if (typeof window !== 'undefined' && window.storageAPI) {
         try {
           await window.storageAPI.cancelScan();
@@ -229,7 +240,6 @@ export const useStorageStore = create<StorageState>((set, get) => {
           console.error('Failed to cancel scan:', err);
         }
       }
-      set({ scanStatus: 'cancelled' });
     },
 
     drillDown: (node: FileNode) => {
