@@ -101,14 +101,21 @@ export function registerFilesystemHandlers(getMainWindow?: () => BrowserWindow |
     }
 
     try {
-      activeScanner = new FilesystemScanner((progress: ScanProgress) => {
+      const scanner = new FilesystemScanner((progress: ScanProgress) => {
         const win = getTargetWindow();
-        if (win && !win.isDestroyed()) {
+        if (win && !win.isDestroyed() && !scanner.cancelled) {
           win.webContents.send(IPC_CHANNELS.SCAN_PROGRESS, progress);
         }
       });
+      activeScanner = scanner;
 
-      const scanResult = await activeScanner.scan(scanPath);
+      const scanResult = await scanner.scan(scanPath);
+      
+      // If the scan was cancelled, abort emission and discard partial results
+      if (scanner.cancelled || activeScanner !== scanner) {
+        if (activeScanner === scanner) activeScanner = null;
+        return;
+      }
       activeScanner = null;
 
       const win = getTargetWindow();
